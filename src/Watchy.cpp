@@ -109,6 +109,9 @@ void Watchy::handleButtonPress(){
       }    
       showMenu(menuIndex, true);
     }
+    else{
+        handleWatchFaceButton(wakeupBit); // sent button press to watchface
+    }
   }
   //Down Button
   else if (wakeupBit & DOWN_BTN_MASK){
@@ -118,6 +121,9 @@ void Watchy::handleButtonPress(){
         menuIndex = 0;
       }
       showMenu(menuIndex, true);
+    }
+    else{
+        handleWatchFaceButton(wakeupBit); // sent button press to watchface
     }
   }    
 }
@@ -454,6 +460,12 @@ void Watchy::drawWatchFace(){
     display.println(currentTime.Minute);    
 }
 
+void Watchy::handleWatchFaceButton(uint64_t buttonBit){
+    if (buttonBit & UP_BTN_MASK){
+        vibMotor(50, 5);
+    }
+}
+
 weatherData Watchy::getWeatherData(){
 
     weatherData currentWeather;
@@ -461,7 +473,7 @@ weatherData Watchy::getWeatherData(){
     if(connectWiFi()){//Use Weather API for live data if WiFi is connected
         HTTPClient http;
         http.setConnectTimeout(3000);//3 second max timeout
-        String weatherQueryURL = String(OPENWEATHERMAP_URL) + String(CITY_NAME) + String(",") + String(COUNTRY_CODE) + String("&units=") + String(TEMP_UNIT) + String("&appid=") + String(OPENWEATHERMAP_APIKEY);
+        String weatherQueryURL = String(OPENWEATHERMAP_URL) + String(CITY_ID) + String("&units=") + String(TEMP_UNIT) + String("&appid=") + String(OPENWEATHERMAP_APIKEY);
         http.begin(weatherQueryURL.c_str());
         int httpResponseCode = http.GET();
         if(httpResponseCode == 200) {
