@@ -15,45 +15,48 @@
 #include "config.h"
 #include "keys.h"
 
-typedef struct weatherData{
+typedef struct weatherData
+{
     int8_t temperature;
     int16_t weatherConditionCode;
-}weatherData;
+} weatherData;
 
-class Watchy {
-    public:
-        static DS3232RTC RTC;
-        static GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> display;
-        tmElements_t currentTime;
-    public:
-        Watchy();
-        void init();
-        void deepSleep();
-        float getBatteryVoltage();
-        void vibMotor(uint8_t intervalMs = 100, uint8_t length = 20);
+class Watchy
+{
+public:
+    static DS3232RTC RTC;
+    static GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> display;
+    tmElements_t currentTime;
 
-        void handleButtonPress();
-        void showMenu(byte menuIndex, bool partialRefresh);
-        void showBattery();
-        void showBuzz();
-        void showAccelerometer();
-        void showUpdateFW();
-        void setTime();
-        void setupWifi();
-        bool connectWiFi();
-        weatherData getWeatherData();
-        void updateFWBegin();
+public:
+    Watchy();
+    void init();
+    void deepSleep();
+    float getBatteryVoltage();
+    void vibMotor(uint8_t intervalMs = 100, uint8_t length = 20);
 
-        void showWatchFace(bool partialRefresh);
-        virtual void drawWatchFace(); //override this method for different watch faces
-        virtual void handleWatchFaceButton(uint64_t buttonBit); // override this method to handle button presses on the watch face
+    void handleButtonPress();
+    void showMenu(byte menuIndex, bool partialRefresh);
+    void showBattery();
+    void showBuzz();
+    void showAccelerometer();
+    void showUpdateFW();
+    void setTime();
+    void setupWifi();
+    bool connectWiFi();
+    weatherData getWeatherData();
+    void updateFWBegin();
 
-    private:
-        void _rtcConfig();    
-        void _bmaConfig();
-        static void _configModeCallback(WiFiManager *myWiFiManager);
-        static uint16_t _readRegister(uint8_t address, uint8_t reg, uint8_t *data, uint16_t len);
-        static uint16_t _writeRegister(uint8_t address, uint8_t reg, uint8_t *data, uint16_t len);
+    void showWatchFace(bool partialRefresh);
+    virtual void drawWatchFace();                           //override this method for different watch faces
+    virtual void handleWatchFaceButton(uint64_t buttonBit); // override this method to handle button presses on the watch face
+
+private:
+    void _rtcConfig();
+    void _bmaConfig();
+    static void _configModeCallback(WiFiManager *myWiFiManager);
+    static uint16_t _readRegister(uint8_t address, uint8_t reg, uint8_t *data, uint16_t len);
+    static uint16_t _writeRegister(uint8_t address, uint8_t reg, uint8_t *data, uint16_t len);
 };
 
 extern RTC_DATA_ATTR int guiState;
