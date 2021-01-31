@@ -6,6 +6,7 @@
 #include <Fonts/FreeMonoBold9pt7b.h>
 #include "config.h"
 
+// unique action codes
 #define MENU_ACTION_APP 0 // open app action
 #define MENU_ACITON_SUB 1 // open submenu action
 
@@ -15,8 +16,8 @@ typedef struct menuList;
 typedef struct menuItem
 {
     char* name;                 // the name to display
-    uint8_t action;             // action type (to be handled in Watchy::handleButtonPress())
-    uint8_t id;                 // action id (unique to action type)
+    uint8_t action;             // define how an entry acts
+    uint8_t id;                 // unique within action type, used to differentiate things in the same type
 } menuItem;
 
 // data for list of menu choices
@@ -47,7 +48,6 @@ class Menu
         uint8_t clickMenuItem();
         void navigate(int movement);
         bool goToPreviousMenu();
-        int getIndex();
     
     private:
         const menuList* getSubMenu(uint8_t id);

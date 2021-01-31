@@ -20,19 +20,21 @@ Watchy::Watchy()
 
 String getValue(String data, char separator, int index)
 {
-  int found = 0;
-  int strIndex[] = {0, -1};
-  int maxIndex = data.length()-1;
+    int found = 0;
+    int strIndex[] = {0, -1};
+    int maxIndex = data.length()-1;
 
-  for(int i=0; i<=maxIndex && found<=index; i++){
-    if(data.charAt(i)==separator || i==maxIndex){
-        found++;
-        strIndex[0] = strIndex[1]+1;
-        strIndex[1] = (i == maxIndex) ? i+1 : i;
+    for(int i=0; i<=maxIndex && found<=index; i++)
+    {
+        if(data.charAt(i)==separator || i==maxIndex)
+        {
+            found++;
+            strIndex[0] = strIndex[1]+1;
+            strIndex[1] = (i == maxIndex) ? i+1 : i;
+        }
     }
-  }
 
-  return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
+    return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
 
 void Watchy::init(String datetime)
@@ -113,7 +115,7 @@ void Watchy::handleButtonPress()
         else if (guiState == MAIN_MENU_STATE)
         { //if already in menu, then select menu item
             switch (menu.clickMenuItem())
-            {
+            {   // 0 is reserved to do nothing
                 case 1:
                     showBattery();
                     break;

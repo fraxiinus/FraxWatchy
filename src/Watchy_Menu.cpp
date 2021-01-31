@@ -4,62 +4,44 @@ GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* Menu::display;
 int* Menu::guiState;
 menuState* Menu::state;
 
-const menuItem thirdMenuItems[2] = 
+const menuItem setupMenuItems[3] = 
 {
-    {"2 - One", MENU_ACTION_APP, 9},
-    {"2 - Two", MENU_ACTION_APP, 10}
-};
-
-const menuItem secondMenuItems[4] = 
-{
-    {"1 - One", MENU_ACTION_APP, 6},
-    {"1 - Two", MENU_ACTION_APP, 7},
-    {"1 - Three", MENU_ACTION_APP, 8},
-    {"1 - Four", MENU_ACITON_SUB, 1}
+    {"Set Time", MENU_ACTION_APP, 4},
+    {"Setup WiFi", MENU_ACTION_APP, 5},
+    {"Update Firmware", MENU_ACTION_APP, 6}
 };
 
 const menuItem mainMenuItems[6] = 
 {
-    {"Check Battery", MENU_ACTION_APP,  1},
+    {"Check Battery", MENU_ACTION_APP,  1}, // opens app with id=1
     {"Vibrate Motor", MENU_ACTION_APP, 2},
     {"Show Accelerometer", MENU_ACTION_APP, 3},
-    {"Set Time", MENU_ACTION_APP, 4},
-    {"Setup WiFi", MENU_ACTION_APP, 5},
-    {"Big Menu", MENU_ACITON_SUB, 0}
+    {"Advanced Setup", MENU_ACITON_SUB, 0}    // opens submenu with id=0 (entry point)
 };
 
 const menuList mainMenu =
 {
-    NULL,
-    mainMenuItems,
-    6,
-    0
+    NULL,               // main menu is not a submenu so had no parent
+    mainMenuItems,      // link to the array of items
+    4,                  // how many items are in the array
+    0                   // main menu has no parent, so the parent entry point isn't used
 };
 
-const menuList secondMenu =
+const menuList setupMenu =
 {
-    &mainMenu,
-    secondMenuItems,
-    4,
-    5
-};
-
-const menuList thirdMenu =
-{
-    &secondMenu,
-    thirdMenuItems,
-    2,
-    3
+    &mainMenu,          // second menu is a submenu under main menu
+    setupMenuItems,
+    3,
+    3                   // the 3rd entry in main menu is the entry point to the second menu
 };
 
 const menuList* Menu::getSubMenu(uint8_t id)
 {
+    // Add a case for your menu here so your menu can be accesseed
     switch(id)
     {
         case 0:
-            return &secondMenu;
-        case 1:
-            return &thirdMenu;
+            return &setupMenu;
         default:
             return &mainMenu;
     }
@@ -114,8 +96,10 @@ void Menu::showMenu(const menuList* menu, bool partialRefresh)
 
 uint8_t Menu::clickMenuItem()
 {
+    // get the selected item
     menuItem menuSelection = (state->currentMenu)->items[state->menuIndex];
-    // 0x00 is the exclusive action id for folders
+    
+    // handle submenu actions internally
     if (menuSelection.action == MENU_ACITON_SUB)
     {
         state->currentMenu = getSubMenu(menuSelection.id);
@@ -123,18 +107,18 @@ uint8_t Menu::clickMenuItem()
 
         showMenu(getSubMenu(menuSelection.id), true);
 
-        return 0;
+        return 0;   // 0 is reserved value for doing nothing
     }
 
+    // otherwise return the id of the menu item
     return menuSelection.id;
 }
 
 void Menu::navigate(int movement)
 {
-    int desiredIndex = state->menuIndex + movement;
 
+    int desiredIndex = state->menuIndex + movement;
     // if the index is negative, we need to loop around
-    // you would think -1 % 6 = 5, but it equals -1 in C
     if (desiredIndex == -1)
     {
         desiredIndex = (state->currentMenu)->length - 1;
@@ -145,6 +129,7 @@ void Menu::navigate(int movement)
     showMenu(state->currentMenu, true);
 }
 
+// return true if there is a parent menu to go back to
 bool Menu::goToPreviousMenu()
 {
     if ((state->currentMenu)->parentIndex != NULL)
@@ -157,10 +142,6 @@ bool Menu::goToPreviousMenu()
         return true;
     }
 
+    // tell the caller there is no more menu left (go to watchface)
     return false;
-}
-
-int Menu::getIndex()
-{
-    return state->menuIndex;
 }
