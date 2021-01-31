@@ -31,7 +31,7 @@ class Watchy
 
     public:
         Watchy();
-        void init();
+        void init(String datetime = "");
         void deepSleep();
         float getBatteryVoltage();
         void vibMotor(uint8_t intervalMs = 100, uint8_t length = 20);
@@ -52,7 +52,7 @@ class Watchy
         virtual void handleWatchFaceButton(uint64_t buttonBit); // override this method to handle button presses on the watch face
 
     private:
-        void _rtcConfig();
+        void _rtcConfig(String datetime);    
         void _bmaConfig();
         static void _configModeCallback(WiFiManager *myWiFiManager);
         static uint16_t _readRegister(uint8_t address, uint8_t reg, uint8_t *data, uint16_t len);
