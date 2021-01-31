@@ -2,20 +2,28 @@
 
 DS3232RTC Watchy::RTC(false);
 GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> Watchy::display(GxEPD2_154_D67(CS, DC, RESET, BUSY));
+RTC_DATA_ATTR Menu Watchy::menu;
 
-RTC_DATA_ATTR int guiState;
-RTC_DATA_ATTR int menuIndex;
 RTC_DATA_ATTR BMA423 sensor;
+RTC_DATA_ATTR menuState menuData;
+RTC_DATA_ATTR int guiState;
 RTC_DATA_ATTR bool WIFI_CONFIGURED;
 RTC_DATA_ATTR bool BLE_CONFIGURED;
 
-Watchy::Watchy() {} //constructor
+Watchy::Watchy() 
+{
+    // giving menu class pointers to data it needs
+    menu.display = &display;
+    menu.guiState = &guiState;
+    menu.state = &menuData;
+}
 
 void Watchy::init()
 {
     esp_sleep_wakeup_cause_t wakeup_reason;
     wakeup_reason = esp_sleep_get_wakeup_cause(); //get wake up reason
     Wire.begin(SDA, SCL);                         //init i2c
+    Serial.begin(115200);
 
     switch (wakeup_reason)
     {
@@ -68,32 +76,32 @@ void Watchy::handleButtonPress()
     {
         if (guiState == WATCHFACE_STATE)
         { //enter menu state if coming from watch face
-            showMenu(menuIndex, false);
+            menu.goToMenu(true);
         }
         else if (guiState == MAIN_MENU_STATE)
         { //if already in menu, then select menu item
-            switch (menuIndex)
+            switch (menu.clickMenuItem())
             {
-            case 0:
-                showBattery();
-                break;
-            case 1:
-                showBuzz();
-                break;
-            case 2:
-                showAccelerometer();
-                break;
-            case 3:
-                setTime();
-                break;
-            case 4:
-                setupWifi();
-                break;
-            case 5:
-                showUpdateFW();
-                break;
-            default:
-                break;
+                case 1:
+                    showBattery();
+                    break;
+                case 2:
+                    showBuzz();
+                    break;
+                case 3:
+                    showAccelerometer();
+                    break;
+                case 4:
+                    setTime();
+                    break;
+                case 5:
+                    setupWifi();
+                    break;
+                case 6:
+                    showUpdateFW();
+                    break;
+                default:
+                    break;
             }
         }
         else if (guiState == FW_UPDATE_STATE)
@@ -105,18 +113,21 @@ void Watchy::handleButtonPress()
     else if (wakeupBit & BACK_BTN_MASK)
     {
         if (guiState == MAIN_MENU_STATE)
-        {                       //exit to watch face if already in menu
-            RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
-            RTC.read(currentTime);
-            showWatchFace(false);
+        {
+            if (!menu.goToPreviousMenu())
+            {                       //exit to watch face if already in menu
+                RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
+                RTC.read(currentTime);
+                showWatchFace(false);
+            }
         }
         else if (guiState == APP_STATE)
         {
-            showMenu(menuIndex, false); //exit to menu if already in app
+            menu.goToMenu(false); //exit to menu if already in app
         }
         else if (guiState == FW_UPDATE_STATE)
         {
-            showMenu(menuIndex, false); //exit to menu if already in app
+            menu.goToMenu(false); //exit to menu if already in app
         }
     }
     //Up Button
@@ -124,12 +135,7 @@ void Watchy::handleButtonPress()
     {
         if (guiState == MAIN_MENU_STATE)
         { //increment menu index
-            menuIndex--;
-            if (menuIndex < 0)
-            {
-                menuIndex = MENU_LENGTH - 1;
-            }
-            showMenu(menuIndex, true);
+            menu.navigate(-1);
         }
         else
         {
@@ -141,12 +147,7 @@ void Watchy::handleButtonPress()
     {
         if (guiState == MAIN_MENU_STATE)
         { //decrement menu index
-            menuIndex++;
-            if (menuIndex > MENU_LENGTH - 1)
-            {
-                menuIndex = 0;
-            }
-            showMenu(menuIndex, true);
+            menu.navigate(1);
         }
         else
         {
@@ -155,41 +156,10 @@ void Watchy::handleButtonPress()
     }
 }
 
-void Watchy::showMenu(byte menuIndex, bool partialRefresh)
-{
-    display.init(0, false); //_initial_refresh to false to prevent full update on init
-    display.setFullWindow();
-    display.fillScreen(GxEPD_BLACK);
-    display.setFont(&FreeMonoBold9pt7b);
-
-    int16_t x1, y1;
-    uint16_t w, h;
-    int16_t yPos;
-
-    char *menuItems[] = {"Check Battery", "Vibrate Motor", "Show Accelerometer", "Set Time", "Setup WiFi", "Update Firmware"};
-    for (int i = 0; i < MENU_LENGTH; i++)
-    {
-        yPos = 30 + (MENU_HEIGHT * i);
-        display.setCursor(0, yPos);
-        if (i == menuIndex)
-        {
-            display.getTextBounds(menuItems[i], 0, yPos, &x1, &y1, &w, &h);
-            display.fillRect(x1 - 1, y1 - 10, 200, h + 15, GxEPD_WHITE);
-            display.setTextColor(GxEPD_BLACK);
-            display.println(menuItems[i]);
-        }
-        else
-        {
-            display.setTextColor(GxEPD_WHITE);
-            display.println(menuItems[i]);
-        }
-    }
-
-    display.display(partialRefresh);
-    display.hibernate();
-
-    guiState = MAIN_MENU_STATE;
-}
+// void Watchy::showMenu(bool partialRefresh)
+// {
+//     menu.showMenu(partialRefresh); // hope this works
+// }
 
 void Watchy::showBattery()
 {
@@ -222,7 +192,7 @@ void Watchy::showBuzz()
     display.display(false); //full refresh
     display.hibernate();
     vibMotor();
-    showMenu(menuIndex, false);
+    menu.goToMenu(false);
 }
 
 void Watchy::vibMotor(uint8_t intervalMs, uint8_t length)
@@ -416,7 +386,7 @@ void Watchy::setTime()
     time_t t = makeTime(tm) + FUDGE;
     RTC.set(t);
 
-    showMenu(menuIndex, false);
+    menu.goToMenu(false);
 }
 
 void Watchy::showAccelerometer()
@@ -498,7 +468,7 @@ void Watchy::showAccelerometer()
         }
     }
 
-    showMenu(menuIndex, false);
+    menu.goToMenu(false);
 }
 
 void Watchy::showWatchFace(bool partialRefresh)
@@ -894,7 +864,7 @@ void Watchy::updateFWBegin()
     //turn off radios
     WiFi.mode(WIFI_OFF);
     btStop();
-    showMenu(menuIndex, false);
+    menu.goToMenu(false);
 }
 
 // time_t compileTime()
