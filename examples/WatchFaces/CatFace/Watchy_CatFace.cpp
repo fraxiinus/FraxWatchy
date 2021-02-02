@@ -29,6 +29,21 @@ void WatchyCatFace::drawTime()
     display.print(":");
     if (currentTime.Minute < 10) display.print("0");
     display.println(currentTime.Minute);
+
+    display.setFont(&FreeMonoBold9pt7b);
+    display.setCursor(160, 50);
+    if (settings.timeFormat)
+    {
+        display.print("24H");
+    }
+    else if (currentTime.Hour > 11)
+    {
+        display.print("PM");
+    }
+    else
+    {
+        display.print("AM");
+    }
 }
 
 void WatchyCatFace::drawBattery()
