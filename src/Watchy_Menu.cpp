@@ -63,14 +63,14 @@ void Menu::goToMenu(bool goToMain)
     if (goToMain)
     {
         state->currentMenu = &mainMenu;
-        showMenu(&mainMenu, true);
+        drawMenu(&mainMenu, true);
     } else
     {
-        showMenu(state->currentMenu, true);
+        drawMenu(state->currentMenu, true);
     }
 }
 
-void Menu::showMenu(const menuList* menu, bool partialRefresh)
+void Menu::drawMenu(const menuItem* items, uint8_t length, uint8_t selectedIndex, bool partialRefresh)
 {
     display->init(0, false); //_initial_refresh to false to prevent full update on init
     display->setFullWindow();
@@ -81,26 +81,31 @@ void Menu::showMenu(const menuList* menu, bool partialRefresh)
     uint16_t w, h;
     int16_t yPos;
 
-    for (int i = 0; i < menu->length; i++)
+    for (int i = 0; i < length; i++)
     {
         yPos = 30 + (MENU_HEIGHT * i);
         display->setCursor(0, yPos);
-        if (i == state->menuIndex)
+        if (i == selectedIndex)
         {
-            display->getTextBounds(menu->items[i].name, 0, yPos, &x1, &y1, &w, &h);
+            display->getTextBounds(items[i].name, 0, yPos, &x1, &y1, &w, &h);
             display->fillRect(x1 - 1, y1 - 10, 200, h + 15, GxEPD_WHITE);
             display->setTextColor(GxEPD_BLACK);
-            display->println(menu->items[i].name);
+            display->println(items[i].name);
         }
         else
         {
             display->setTextColor(GxEPD_WHITE);
-            display->println(menu->items[i].name);
+            display->println(items[i].name);
         }
     }
 
     display->display(partialRefresh);
     display->hibernate();
+}
+
+void Menu::drawMenu(const menuList* menu, bool partialRefresh)
+{
+    drawMenu(menu->items, menu->length, state->menuIndex, partialRefresh);
 }
 
 uint8_t Menu::clickMenuItem()
@@ -114,7 +119,7 @@ uint8_t Menu::clickMenuItem()
         state->currentMenu = getSubMenu(menuSelection.id);
         state->menuIndex = 0;
 
-        showMenu(getSubMenu(menuSelection.id), true);
+        drawMenu(getSubMenu(menuSelection.id), true);
 
         return 0;   // 0 is reserved value for doing nothing
     }
@@ -135,7 +140,7 @@ void Menu::navigate(int movement)
 
     state->menuIndex = desiredIndex % (state->currentMenu)->length;
 
-    showMenu(state->currentMenu, true);
+    drawMenu(state->currentMenu, true);
 }
 
 // return true if there is a parent menu to go back to
@@ -147,7 +152,7 @@ bool Menu::goToPreviousMenu()
         state->menuIndex = (state->currentMenu)->parentIndex;
         state->currentMenu = (state->currentMenu)->parent;
 
-        showMenu(state->currentMenu, true);
+        drawMenu(state->currentMenu, true);
         return true;
     }
 

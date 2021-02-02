@@ -41,9 +41,11 @@ class Menu
     public: // public methods
         Menu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, int* guiStatePtr, menuState* statePtr);
         void goToMenu(bool goToMain);
+        bool goToPreviousMenu();
         uint8_t clickMenuItem();
         void navigate(int movement);
-        bool goToPreviousMenu();
+        void drawMenu(const menuItem* items, uint8_t length, uint8_t selectedIndex, bool partialRefresh);
+        void drawMenu(const menuList* menu, bool partialRefresh);
     
     private:    // private members
         static GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* display;
@@ -52,7 +54,6 @@ class Menu
 
     private:    // private methods
         const menuList* getSubMenu(uint8_t id);
-        void showMenu(const menuList* menu, bool partialRefresh);
 };
 
 #endif

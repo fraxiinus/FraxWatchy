@@ -176,7 +176,7 @@ void Watchy::handleButtonPress()
         }
         else
         {
-            handleWatchFaceButton(wakeupBit); // sent button press to watchface
+            handleWatchFaceButton(0); // sent button press to watchface
         }
     }
     //Down Button
@@ -188,15 +188,10 @@ void Watchy::handleButtonPress()
         }
         else
         {
-            handleWatchFaceButton(wakeupBit); // sent button press to watchface
+            handleWatchFaceButton(1); // sent button press to watchface
         }
     }
 }
-
-// void Watchy::showMenu(bool partialRefresh)
-// {
-//     menu.showMenu(partialRefresh); // hope this works
-// }
 
 void Watchy::showBattery()
 {
@@ -427,83 +422,55 @@ void Watchy::setTime()
 
 void Watchy::setTimeFormat()
 {
-    guiState = APP_STATE;
+    // Define menu
+    //  we are bypassing normal menu operation,
+    //  so other variables don't matter
+    menuItem choices[2] = 
+    {
+        {"12 hour", 0, 0},
+        {"24 hour", 0, 0}
+    };
+
+    guiState = APP_STATE;   // change state to app
     
+    // enable reading input from button pins
     pinMode(DOWN_BTN_PIN, INPUT);
     pinMode(UP_BTN_PIN, INPUT);
     pinMode(MENU_BTN_PIN, INPUT);
     pinMode(BACK_BTN_PIN, INPUT);
 
+    // create temp selection variable for selecting
     bool selection = settings.timeFormat;
-    showTimeFormatMenu(selection);
+    // draw initial menu
+    menu.drawMenu(choices, 2, selection, true);
 
+    // loop forever
+    // second check is there because the delay causes problems otherwise
     while (1 && guiState == APP_STATE)
     {
-        if (digitalRead(BACK_BTN_PIN) == 1)
+        if (digitalRead(BACK_BTN_PIN) == 1) // back button press
         {
             menu.goToMenu(false);
         }
-        else if (digitalRead(MENU_BTN_PIN) == 1)
+        else if (digitalRead(MENU_BTN_PIN) == 1) // menu (confirm) button press
         {
             settings.timeFormat = selection;
             menu.goToMenu(false);
         }
-        else if (digitalRead(UP_BTN_PIN) == 1)
+        else if (digitalRead(UP_BTN_PIN) == 1) // up
         {
             selection = !selection;
-            showTimeFormatMenu(selection);
+            // redraw the menu with the new selection
+            menu.drawMenu(choices, 2, selection, true);
         }
-        else if (digitalRead(DOWN_BTN_PIN) == 1)
+        else if (digitalRead(DOWN_BTN_PIN) == 1) // down
         {
             selection = !selection;
-            showTimeFormatMenu(selection);
+            menu.drawMenu(choices, 2, selection, true);
         }
 
-        delay(100);
+        delay(100); // wait 100ms to slow down loop
     }
-}
-
-void Watchy::showTimeFormatMenu(bool selection)
-{
-    display.init(0, false);
-    display.setFullWindow();
-    display.fillScreen(GxEPD_BLACK);
-    display.setFont(&FreeMonoBold9pt7b);
-
-    int16_t x1, y1;
-    uint16_t w, h;
-
-    if (selection) 
-    {
-        display.setCursor(0, MENU_HEIGHT);
-        display.getTextBounds("24 hour format", 0, MENU_HEIGHT, &x1, &y1, &w, &h);
-        display.fillRect(x1 - 1, y1 - 10, 200, h + 15, GxEPD_WHITE);
-        display.setTextColor(GxEPD_BLACK);
-        display.println("24 hour format");
-
-        display.setCursor(0, (MENU_HEIGHT * 2));
-        display.getTextBounds("12 hour format", 0, (MENU_HEIGHT * 2), &x1, &y1, &w, &h);
-        display.fillRect(x1 - 1, y1 - 10, 200, h + 15, GxEPD_BLACK);
-        display.setTextColor(GxEPD_WHITE);
-        display.println("12 hour format");
-    }
-    else 
-    {
-        display.setCursor(0, MENU_HEIGHT);
-        display.getTextBounds("24 hour format", 0, MENU_HEIGHT, &x1, &y1, &w, &h);
-        display.fillRect(x1 - 1, y1 - 10, 200, h + 15, GxEPD_BLACK);
-        display.setTextColor(GxEPD_WHITE);
-        display.println("24 hour format");
-
-        display.setCursor(0, (MENU_HEIGHT * 2));
-        display.getTextBounds("12 hour format", 0, (MENU_HEIGHT * 2), &x1, &y1, &w, &h);
-        display.fillRect(x1 - 1, y1 - 10, 200, h + 15, GxEPD_WHITE);
-        display.setTextColor(GxEPD_BLACK);
-        display.println("12 hour format");
-    }
-
-    display.display(true);
-    display.hibernate();
 }
 
 void Watchy::showAccelerometer()
@@ -615,9 +582,9 @@ void Watchy::drawWatchFace()
     display.println(currentTime.Minute);
 }
 
-void Watchy::handleWatchFaceButton(uint64_t buttonBit)
+void Watchy::handleWatchFaceButton(uint8_t button)
 {
-    if (buttonBit & UP_BTN_MASK)
+    if (button == 0)
     {
         vibMotor(50, 5);
     }

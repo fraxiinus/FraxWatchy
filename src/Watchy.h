@@ -23,7 +23,7 @@ typedef struct weatherData
 
 typedef struct userSettings
 {
-    bool timeFormat; // true = 24
+    bool timeFormat; // false = 12hour time, true = 24hour time
 } userSettings;
 
 class Watchy
@@ -48,7 +48,6 @@ class Watchy
         void showUpdateFW();
         void setTime();
         void setTimeFormat();
-        void showTimeFormatMenu(bool selection);
         void setupWifi();
         bool connectWiFi();
         weatherData getWeatherData();
@@ -56,7 +55,7 @@ class Watchy
 
         void showWatchFace(bool partialRefresh);
         virtual void drawWatchFace();                           //override this method for different watch faces
-        virtual void handleWatchFaceButton(uint64_t buttonBit); // override this method to handle button presses on the watch face
+        virtual void handleWatchFaceButton(uint8_t button);     //override this method to handle button presses on the watch face
 
     private:
         void _rtcConfig(String datetime);    
