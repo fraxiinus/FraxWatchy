@@ -1,21 +1,19 @@
 #include "Watchy.h"
 
-DS3232RTC Watchy::RTC(false);
-GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> Watchy::display(GxEPD2_154_D67(CS, DC, RESET, BUSY));
-RTC_DATA_ATTR Menu Watchy::menu;
-
 RTC_DATA_ATTR BMA423 sensor;
 RTC_DATA_ATTR menuState menuData;
 RTC_DATA_ATTR int guiState;
+RTC_DATA_ATTR userSettings settings;
 RTC_DATA_ATTR bool WIFI_CONFIGURED;
 RTC_DATA_ATTR bool BLE_CONFIGURED;
+
+DS3232RTC Watchy::RTC(false);
+GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> Watchy::display(GxEPD2_154_D67(CS, DC, RESET, BUSY));
+Menu Watchy::menu(&display, &guiState, &menuData);
 
 Watchy::Watchy() 
 {
     // giving menu class pointers to data it needs
-    menu.display = &display;
-    menu.guiState = &guiState;
-    menu.state = &menuData;
 }
 
 String getValue(String data, char separator, int index)
@@ -116,6 +114,8 @@ void Watchy::handleButtonPress()
         { //if already in menu, then select menu item
             switch (menu.clickMenuItem())
             {   // 0 is reserved to do nothing
+                case 0:
+                    break;
                 case 1:
                     showBattery();
                     break;
@@ -133,6 +133,9 @@ void Watchy::handleButtonPress()
                     break;
                 case 6:
                     showUpdateFW();
+                    break;
+                case 7:
+                    setTimeFormat();
                     break;
                 default:
                     break;
@@ -243,7 +246,6 @@ void Watchy::vibMotor(uint8_t intervalMs, uint8_t length)
 
 void Watchy::setTime()
 {
-
     guiState = APP_STATE;
 
     RTC.read(currentTime);
@@ -421,6 +423,87 @@ void Watchy::setTime()
     RTC.set(t);
 
     menu.goToMenu(false);
+}
+
+void Watchy::setTimeFormat()
+{
+    guiState = APP_STATE;
+    
+    pinMode(DOWN_BTN_PIN, INPUT);
+    pinMode(UP_BTN_PIN, INPUT);
+    pinMode(MENU_BTN_PIN, INPUT);
+    pinMode(BACK_BTN_PIN, INPUT);
+
+    bool selection = settings.timeFormat;
+    showTimeFormatMenu(selection);
+
+    while (1 && guiState == APP_STATE)
+    {
+        if (digitalRead(BACK_BTN_PIN) == 1)
+        {
+            menu.goToMenu(false);
+        }
+        else if (digitalRead(MENU_BTN_PIN) == 1)
+        {
+            settings.timeFormat = selection;
+            menu.goToMenu(false);
+        }
+        else if (digitalRead(UP_BTN_PIN) == 1)
+        {
+            selection = !selection;
+            showTimeFormatMenu(selection);
+        }
+        else if (digitalRead(DOWN_BTN_PIN) == 1)
+        {
+            selection = !selection;
+            showTimeFormatMenu(selection);
+        }
+
+        delay(100);
+    }
+}
+
+void Watchy::showTimeFormatMenu(bool selection)
+{
+    display.init(0, false);
+    display.setFullWindow();
+    display.fillScreen(GxEPD_BLACK);
+    display.setFont(&FreeMonoBold9pt7b);
+
+    int16_t x1, y1;
+    uint16_t w, h;
+
+    if (selection) 
+    {
+        display.setCursor(0, MENU_HEIGHT);
+        display.getTextBounds("24 hour format", 0, MENU_HEIGHT, &x1, &y1, &w, &h);
+        display.fillRect(x1 - 1, y1 - 10, 200, h + 15, GxEPD_WHITE);
+        display.setTextColor(GxEPD_BLACK);
+        display.println("24 hour format");
+
+        display.setCursor(0, (MENU_HEIGHT * 2));
+        display.getTextBounds("12 hour format", 0, (MENU_HEIGHT * 2), &x1, &y1, &w, &h);
+        display.fillRect(x1 - 1, y1 - 10, 200, h + 15, GxEPD_BLACK);
+        display.setTextColor(GxEPD_WHITE);
+        display.println("12 hour format");
+    }
+    else 
+    {
+        display.setCursor(0, MENU_HEIGHT);
+        display.getTextBounds("24 hour format", 0, MENU_HEIGHT, &x1, &y1, &w, &h);
+        display.fillRect(x1 - 1, y1 - 10, 200, h + 15, GxEPD_BLACK);
+        display.setTextColor(GxEPD_WHITE);
+        display.println("24 hour format");
+
+        display.setCursor(0, (MENU_HEIGHT * 2));
+        display.getTextBounds("12 hour format", 0, (MENU_HEIGHT * 2), &x1, &y1, &w, &h);
+        display.fillRect(x1 - 1, y1 - 10, 200, h + 15, GxEPD_WHITE);
+        display.setTextColor(GxEPD_BLACK);
+        display.println("12 hour format");
+    }
+
+    display.display(true);
+    display.hibernate();
 }
 
 void Watchy::showAccelerometer()

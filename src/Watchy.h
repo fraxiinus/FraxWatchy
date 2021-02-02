@@ -21,6 +21,11 @@ typedef struct weatherData
     int16_t weatherConditionCode;
 } weatherData;
 
+typedef struct userSettings
+{
+    bool timeFormat; // true = 24
+} userSettings;
+
 class Watchy
 {
     public:
@@ -42,6 +47,8 @@ class Watchy
         void showAccelerometer();
         void showUpdateFW();
         void setTime();
+        void setTimeFormat();
+        void showTimeFormatMenu(bool selection);
         void setupWifi();
         bool connectWiFi();
         weatherData getWeatherData();
@@ -62,6 +69,7 @@ class Watchy
 extern RTC_DATA_ATTR int guiState;
 extern RTC_DATA_ATTR BMA423 sensor;
 extern RTC_DATA_ATTR menuState menuData;
+extern RTC_DATA_ATTR userSettings settings;
 extern RTC_DATA_ATTR bool WIFI_CONFIGURED;
 extern RTC_DATA_ATTR bool BLE_CONFIGURED;
 

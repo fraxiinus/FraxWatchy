@@ -4,9 +4,10 @@ GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* Menu::display;
 int* Menu::guiState;
 menuState* Menu::state;
 
-const menuItem setupMenuItems[3] = 
+const menuItem setupMenuItems[4] = 
 {
     {"Set Time", MENU_ACTION_APP, 4},
+    {"Time Format", MENU_ACTION_APP, 7},
     {"Setup WiFi", MENU_ACTION_APP, 5},
     {"Update Firmware", MENU_ACTION_APP, 6}
 };
@@ -16,9 +17,9 @@ const menuItem mainMenuItems[6] =
     {"Check Battery", MENU_ACTION_APP,  1}, // opens app with id=1
     {"Vibrate Motor", MENU_ACTION_APP, 2},
     {"Show Accelerometer", MENU_ACTION_APP, 3},
-    {"Advanced Setup", MENU_ACITON_SUB, 0}    // opens submenu with id=0 (entry point)
+    {"Watchy Settings", MENU_ACTION_SUB, 0}    // opens submenu with id=0 (entry point)
 };
-
+ 
 const menuList mainMenu =
 {
     NULL,               // main menu is not a submenu so had no parent
@@ -31,8 +32,8 @@ const menuList setupMenu =
 {
     &mainMenu,          // second menu is a submenu under main menu
     setupMenuItems,
-    3,
-    3                   // the 3rd entry in main menu is the entry point to the second menu
+    4,
+    3                   // the 4th entry in main menu is the entry point to the second menu
 };
 
 const menuList* Menu::getSubMenu(uint8_t id)
@@ -45,6 +46,14 @@ const menuList* Menu::getSubMenu(uint8_t id)
         default:
             return &mainMenu;
     }
+}
+
+
+Menu::Menu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, int* guiStatePtr, menuState* statePtr)
+{
+    display = displayPtr;
+    guiState = guiStatePtr;
+    state = statePtr;
 }
 
 void Menu::goToMenu(bool goToMain)
@@ -100,7 +109,7 @@ uint8_t Menu::clickMenuItem()
     menuItem menuSelection = (state->currentMenu)->items[state->menuIndex];
     
     // handle submenu actions internally
-    if (menuSelection.action == MENU_ACITON_SUB)
+    if (menuSelection.action == MENU_ACTION_SUB)
     {
         state->currentMenu = getSubMenu(menuSelection.id);
         state->menuIndex = 0;

@@ -8,9 +8,7 @@
 
 // unique action codes
 #define MENU_ACTION_APP 0 // open app action
-#define MENU_ACITON_SUB 1 // open submenu action
-
-typedef struct menuList;
+#define MENU_ACTION_SUB 1 // open submenu action
 
 // data for the individual menu choices
 typedef struct menuItem
@@ -38,18 +36,21 @@ typedef struct menuState
 
 class Menu
 {
-    public:
-        static GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* display;
-        static int* guiState;
-        static menuState* state;
-
-    public:
+    public: // public members
+        
+    public: // public methods
+        Menu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, int* guiStatePtr, menuState* statePtr);
         void goToMenu(bool goToMain);
         uint8_t clickMenuItem();
         void navigate(int movement);
         bool goToPreviousMenu();
     
-    private:
+    private:    // private members
+        static GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* display;
+        static int* guiState;
+        static menuState* state;
+
+    private:    // private methods
         const menuList* getSubMenu(uint8_t id);
         void showMenu(const menuList* menu, bool partialRefresh);
 };
