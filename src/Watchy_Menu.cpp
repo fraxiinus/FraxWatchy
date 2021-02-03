@@ -6,18 +6,18 @@ menuState* Menu::state;
 
 const menuItem setupMenuItems[4] = 
 {
-    {"Set Time", MENU_ACTION_APP, 4},
-    {"Time Format", MENU_ACTION_APP, 7},
-    {"Setup WiFi", MENU_ACTION_APP, 5},
-    {"Update Firmware", MENU_ACTION_APP, 6}
+    {"Set Time", NULL, MENU_ACTION_APP, 4},
+    {"Time Format", NULL, MENU_ACTION_APP, 7},
+    {"Setup WiFi", NULL, MENU_ACTION_APP, 5},
+    {"OTA Update", NULL, MENU_ACTION_APP, 6}
 };
 
 const menuItem mainMenuItems[6] = 
 {
-    {"Check Battery", MENU_ACTION_APP,  1}, // opens app with id=1
-    {"Vibrate Motor", MENU_ACTION_APP, 2},
-    {"Show Accelerometer", MENU_ACTION_APP, 3},
-    {"Watchy Settings", MENU_ACTION_SUB, 0}    // opens submenu with id=0 (entry point)
+    {"Check Battery", batteryIcon, MENU_ACTION_APP,  1},        // opens app with id=1
+    {"Vibrate Motor", vibrateIcon, MENU_ACTION_APP, 2},
+    {"Show BMA423", rotationIcon, MENU_ACTION_APP, 3},
+    {"Settings", settingsIcon, MENU_ACTION_SUB, 0}       // opens submenu with id=0 (entry point)
 };
  
 const menuList mainMenu =
@@ -84,16 +84,31 @@ void Menu::drawMenu(const menuItem* items, uint8_t length, uint8_t selectedIndex
     for (int i = 0; i < length; i++)
     {
         yPos = 30 + (MENU_HEIGHT * i);
-        display->setCursor(0, yPos);
+        display->setCursor(40, yPos);
         if (i == selectedIndex)
         {
             display->getTextBounds(items[i].name, 0, yPos, &x1, &y1, &w, &h);
-            display->fillRect(x1 - 1, y1 - 10, 200, h + 15, GxEPD_WHITE);
+            display->fillRect(x1 - 1, y1 - 10, 200, 30, GxEPD_WHITE);
+
+            //display->fillRect(2, yPos - 18, 26, 26, GxEPD_BLACK);
+
+            if (items[i].icon)
+            {
+                display->drawBitmap(5, yPos - 18, items[i].icon, 26, 26, GxEPD_BLACK);
+            }
+
             display->setTextColor(GxEPD_BLACK);
             display->println(items[i].name);
         }
         else
         {
+            //display->fillRect(2, yPos - 18, 26, 26, GxEPD_WHITE);
+
+            if (items[i].icon)
+            {
+                display->drawBitmap(5, yPos - 18, items[i].icon, 26, 26, GxEPD_WHITE);
+            }
+
             display->setTextColor(GxEPD_WHITE);
             display->println(items[i].name);
         }

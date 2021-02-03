@@ -427,8 +427,8 @@ void Watchy::setTimeFormat()
     //  so other variables don't matter
     menuItem choices[2] = 
     {
-        {"12 hour", 0, 0},
-        {"24 hour", 0, 0}
+        {"12 hour", NULL, 0, 0},
+        {"24 hour", NULL, 0, 0}
     };
 
     guiState = APP_STATE;   // change state to app
