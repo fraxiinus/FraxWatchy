@@ -10,6 +10,8 @@
 #define MENU_ACTION_APP 0 // open app action
 #define MENU_ACTION_SUB 1 // open submenu action
 
+#define MENU_EXIT_CODE -1 
+
 // data for the individual menu choices
 typedef struct menuItem
 {
@@ -40,21 +42,26 @@ class Menu
     public: // public members
         
     public: // public methods
-        Menu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, int* guiStatePtr, menuState* statePtr);
-        void goToMenu(bool goToMain);
-        bool goToPreviousMenu();
-        uint8_t clickMenuItem();
-        void navigate(int movement);
-        void drawMenu(const menuItem* items, uint8_t length, uint8_t selectedIndex, bool partialRefresh);
-        void drawMenu(const menuList* menu, bool partialRefresh);
+        Menu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, menuState* statePtr);
+        uint8_t startMenu();
+        // uint8_t enterMenu(const menuList* menu, uint8_t initialSelection);
+
+        // returns user menu selection
+        int8_t displayMenu(const menuItem* items, uint8_t length, uint8_t initialSelection, bool partialRefresh);
+
+        // void goToMenu(bool goToMain);
+        // bool goToPreviousMenu();
+        // uint8_t clickMenuItem();
+        // void navigate(int movement);
     
     private:    // private members
         static GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* display;
-        static int* guiState;
         static menuState* state;
 
     private:    // private methods
         const menuList* getSubMenu(uint8_t id);
+        void drawMenu(const menuItem* items, uint8_t length, uint8_t selectedIndex, bool partialRefresh);
+        void drawMenu(const menuList* menu, bool partialRefresh);
 };
 
 const uint8_t batteryIcon [] PROGMEM = {

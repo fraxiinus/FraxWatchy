@@ -1,22 +1,21 @@
 #include "Watchy_Menu.h"
 
 GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* Menu::display;
-int* Menu::guiState;
 menuState* Menu::state;
 
 const menuItem setupMenuItems[4] = 
 {
-    {"Set Time", NULL, MENU_ACTION_APP, 4},
-    {"Time Format", NULL, MENU_ACTION_APP, 7},
-    {"Setup WiFi", NULL, MENU_ACTION_APP, 5},
-    {"OTA Update", NULL, MENU_ACTION_APP, 6}
+    {"Set Time", NULL, MENU_ACTION_APP, 3},
+    {"Time Format", NULL, MENU_ACTION_APP, 6},
+    {"Setup WiFi", NULL, MENU_ACTION_APP, 4},
+    {"OTA Update", NULL, MENU_ACTION_APP, 5}
 };
 
 const menuItem mainMenuItems[6] = 
 {
-    {"Check Battery", batteryIcon, MENU_ACTION_APP,  1},        // opens app with id=1
-    {"Vibrate Motor", vibrateIcon, MENU_ACTION_APP, 2},
-    {"Show BMA423", rotationIcon, MENU_ACTION_APP, 3},
+    {"Check Battery", batteryIcon, MENU_ACTION_APP,  0},        // opens app with id=1
+    {"Vibrate Motor", vibrateIcon, MENU_ACTION_APP, 1},
+    {"Show BMA423", rotationIcon, MENU_ACTION_APP, 2},
     {"Settings", settingsIcon, MENU_ACTION_SUB, 0}       // opens submenu with id=0 (entry point)
 };
  
@@ -48,27 +47,131 @@ const menuList* Menu::getSubMenu(uint8_t id)
     }
 }
 
-
-Menu::Menu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, int* guiStatePtr, menuState* statePtr)
+// Constructor
+Menu::Menu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, menuState* statePtr)
 {
     display = displayPtr;
-    guiState = guiStatePtr;
     state = statePtr;
+
+    state->currentMenu = &mainMenu;
+    state->menuIndex = 0;
 }
 
-void Menu::goToMenu(bool goToMain)
+uint8_t Menu::startMenu()
 {
-    *guiState = MAIN_MENU_STATE;
-
-    if (goToMain)
+    while (1)
     {
-        state->currentMenu = &mainMenu;
-        drawMenu(&mainMenu, true);
-    } else
-    {
-        drawMenu(state->currentMenu, true);
+        int8_t selection = displayMenu((state->currentMenu)->items, (state->currentMenu)->length, state->menuIndex, true);
+        if (selection == MENU_EXIT_CODE)
+        {
+            // null means the menu has no parent, so we should exit
+            if ((state->currentMenu)->parent == NULL)
+            {
+                return MENU_EXIT_CODE;
+            }
+            else
+            {
+                // change our state to move to the parent
+                state->currentMenu = (state->currentMenu)->parent;
+                state->menuIndex = (state->currentMenu)->parentIndex;
+                continue; // return to start of the loop
+            }
+        }
+        else
+        {
+            menuItem menuSelection = (state->currentMenu)->items[selection];
+            // handle submenu actions internally
+            if (menuSelection.action == MENU_ACTION_SUB)
+            {
+                state->currentMenu = getSubMenu(menuSelection.id);
+                state->menuIndex = 0;
+                continue; // return to start of the loop
+            }
+            else if (menuSelection.action == MENU_ACTION_APP)
+            {
+                return menuSelection.id;
+            }
+        }
     }
 }
+
+// uint8_t Menu::enterMenu(const menuList* menu, uint8_t initialSelection)
+// {
+//     int8_t selection = displayMenu(menu->items, menu->length, uint8_t initialSelection, true);
+    
+//     menuItem menuSelection = menu->items[selection];
+
+//     // handle submenu actions internally
+//     if (menuSelection.action == MENU_ACTION_SUB)
+//     {
+//         const menuList* subMenu = getSubMenu(menuSelection.id);
+
+//         enterMenu(subMenu);
+//     }
+//     else if (menuSelection.action == MENU_ACTION_APP)
+//     {
+//         return menuSelection.id;
+//     }
+// }
+
+int8_t Menu::displayMenu(const menuItem* items, uint8_t length, uint8_t initialSelection, bool partialRefresh)
+{
+    // enable reading input from button pins
+    pinMode(DOWN_BTN_PIN, INPUT);
+    pinMode(UP_BTN_PIN, INPUT);
+    pinMode(MENU_BTN_PIN, INPUT);
+    pinMode(BACK_BTN_PIN, INPUT);
+
+    drawMenu(items, length, initialSelection, partialRefresh);
+
+    while (1)
+    {
+        if (digitalRead(BACK_BTN_PIN) == 1) // back button press
+        {
+            return MENU_EXIT_CODE;
+        }
+        else if (digitalRead(MENU_BTN_PIN) == 1) // menu (confirm) button press
+        {
+            return initialSelection;
+        }
+        else if (digitalRead(UP_BTN_PIN) == 1) // up
+        {
+            int desiredIndex = initialSelection - 1;
+            // if the index is negative, we need to loop around
+            if (desiredIndex == -1) desiredIndex = length - 1;
+            else if (desiredIndex == length) desiredIndex = 0;
+
+            initialSelection = desiredIndex;
+            drawMenu(items, length, initialSelection, partialRefresh);
+        }
+        else if (digitalRead(DOWN_BTN_PIN) == 1) // down
+        {
+            int desiredIndex = initialSelection + 1;
+            // if the index is negative, we need to loop around
+            if (desiredIndex == -1) desiredIndex = length - 1;
+            else if (desiredIndex == length) desiredIndex = 0;
+
+            initialSelection = desiredIndex;
+            drawMenu(items, length, initialSelection, partialRefresh);
+        }
+
+        delay(50); // wait 50ms to stop loop from going insane
+    }
+}
+
+// void Menu::goToMenu(bool goToMain)
+// {
+//     *guiState = MAIN_MENU_STATE;
+
+//     if (goToMain)
+//     {
+//         state->currentMenu = &mainMenu;
+//         drawMenu(&mainMenu, true);
+//     } else
+//     {
+//         drawMenu(state->currentMenu, true);
+//     }
+// }
 
 void Menu::drawMenu(const menuItem* items, uint8_t length, uint8_t selectedIndex, bool partialRefresh)
 {
@@ -123,54 +226,54 @@ void Menu::drawMenu(const menuList* menu, bool partialRefresh)
     drawMenu(menu->items, menu->length, state->menuIndex, partialRefresh);
 }
 
-uint8_t Menu::clickMenuItem()
-{
-    // get the selected item
-    menuItem menuSelection = (state->currentMenu)->items[state->menuIndex];
+// uint8_t Menu::clickMenuItem()
+// {
+//     // get the selected item
+//     menuItem menuSelection = (state->currentMenu)->items[state->menuIndex];
     
-    // handle submenu actions internally
-    if (menuSelection.action == MENU_ACTION_SUB)
-    {
-        state->currentMenu = getSubMenu(menuSelection.id);
-        state->menuIndex = 0;
+//     // handle submenu actions internally
+//     if (menuSelection.action == MENU_ACTION_SUB)
+//     {
+//         state->currentMenu = getSubMenu(menuSelection.id);
+//         state->menuIndex = 0;
 
-        drawMenu(getSubMenu(menuSelection.id), true);
+//         drawMenu(getSubMenu(menuSelection.id), true);
 
-        return 0;   // 0 is reserved value for doing nothing
-    }
+//         return 0;   // 0 is reserved value for doing nothing
+//     }
 
-    // otherwise return the id of the menu item
-    return menuSelection.id;
-}
+//     // otherwise return the id of the menu item
+//     return menuSelection.id;
+// }
 
-void Menu::navigate(int movement)
-{
+// void Menu::navigate(int movement)
+// {
 
-    int desiredIndex = state->menuIndex + movement;
-    // if the index is negative, we need to loop around
-    if (desiredIndex == -1)
-    {
-        desiredIndex = (state->currentMenu)->length - 1;
-    }
+//     int desiredIndex = state->menuIndex + movement;
+//     // if the index is negative, we need to loop around
+//     if (desiredIndex == -1)
+//     {
+//         desiredIndex = (state->currentMenu)->length - 1;
+//     }
 
-    state->menuIndex = desiredIndex % (state->currentMenu)->length;
+//     state->menuIndex = desiredIndex % (state->currentMenu)->length;
 
-    drawMenu(state->currentMenu, true);
-}
+//     drawMenu(state->currentMenu, true);
+// }
 
 // return true if there is a parent menu to go back to
-bool Menu::goToPreviousMenu()
-{
-    if ((state->currentMenu)->parentIndex != NULL)
-    {
-        // Update our state
-        state->menuIndex = (state->currentMenu)->parentIndex;
-        state->currentMenu = (state->currentMenu)->parent;
+// bool Menu::goToPreviousMenu()
+// {
+//     if ((state->currentMenu)->parentIndex != NULL)
+//     {
+//         // Update our state
+//         state->menuIndex = (state->currentMenu)->parentIndex;
+//         state->currentMenu = (state->currentMenu)->parent;
 
-        drawMenu(state->currentMenu, true);
-        return true;
-    }
+//         drawMenu(state->currentMenu, true);
+//         return true;
+//     }
 
-    // tell the caller there is no more menu left (go to watchface)
-    return false;
-}
+//     // tell the caller there is no more menu left (go to watchface)
+//     return false;
+// }

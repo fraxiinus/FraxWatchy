@@ -9,7 +9,7 @@ RTC_DATA_ATTR bool BLE_CONFIGURED;
 
 DS3232RTC Watchy::RTC(false);
 GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> Watchy::display(GxEPD2_154_D67(CS, DC, RESET, BUSY));
-Menu Watchy::menu(&display, &guiState, &menuData);
+Menu Watchy::menu(&display, &menuData);
 
 Watchy::Watchy() 
 {
@@ -108,39 +108,75 @@ void Watchy::handleButtonPress()
     {
         if (guiState == WATCHFACE_STATE)
         { //enter menu state if coming from watch face
-            menu.goToMenu(true);
-        }
-        else if (guiState == MAIN_MENU_STATE)
-        { //if already in menu, then select menu item
-            switch (menu.clickMenuItem())
-            {   // 0 is reserved to do nothing
-                case 0:
-                    break;
-                case 1:
-                    showBattery();
-                    break;
-                case 2:
-                    showBuzz();
-                    break;
-                case 3:
-                    showAccelerometer();
-                    break;
-                case 4:
-                    setTime();
-                    break;
-                case 5:
-                    setupWifi();
-                    break;
-                case 6:
-                    showUpdateFW();
-                    break;
-                case 7:
-                    setTimeFormat();
-                    break;
-                default:
-                    break;
+            guiState = MAIN_MENU_STATE;
+            uint8_t selection = menu.startMenu();
+            if (selection == MENU_EXIT_CODE)
+            {
+                RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
+                RTC.read(currentTime);
+                showWatchFace(false);
+            }
+            else
+            {
+                switch (selection)
+                {
+                    case 0:
+                        showBattery();
+                        break;
+                    case 1:
+                        showBuzz();
+                        break;
+                    case 2:
+                        showAccelerometer();
+                        break;
+                    case 3:
+                        setTime();
+                        break;
+                    case 4:
+                        setupWifi();
+                        break;
+                    case 5:
+                        showUpdateFW();
+                        break;
+                    case 6:
+                        setTimeFormat();
+                        break;
+                    default:
+                        break;
+                }
             }
         }
+        // else if (guiState == MAIN_MENU_STATE)
+        // { //if already in menu, then select menu item
+        //     switch (menu.clickMenuItem())
+        //     {   // 0 is reserved to do nothing
+        //         case 0:
+        //             break;
+        //         case 1:
+        //             showBattery();
+        //             break;
+        //         case 2:
+        //             showBuzz();
+        //             break;
+        //         case 3:
+        //             showAccelerometer();
+        //             break;
+        //         case 4:
+        //             setTime();
+        //             break;
+        //         case 5:
+        //             setupWifi();
+        //             break;
+        //         case 6:
+        //             showUpdateFW();
+        //             break;
+        //         case 7:
+        //             setTimeFormat();
+        //             break;
+        //         default:
+        //             break;
+        //     }
+        // }
         else if (guiState == FW_UPDATE_STATE)
         {
             updateFWBegin();
@@ -149,47 +185,47 @@ void Watchy::handleButtonPress()
     //Back Button
     else if (wakeupBit & BACK_BTN_MASK)
     {
-        if (guiState == MAIN_MENU_STATE)
+        // if (guiState == MAIN_MENU_STATE)
+        // {
+        //     if (!menu.goToPreviousMenu())
+        //     {                       //exit to watch face if already in menu
+        //         RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
+        //         RTC.read(currentTime);
+        //         showWatchFace(false);
+        //     }
+        // }
+        if (guiState == APP_STATE)
         {
-            if (!menu.goToPreviousMenu())
-            {                       //exit to watch face if already in menu
-                RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
-                RTC.read(currentTime);
-                showWatchFace(false);
-            }
-        }
-        else if (guiState == APP_STATE)
-        {
-            menu.goToMenu(false); //exit to menu if already in app
+            menu.startMenu(); //exit to menu if already in app
         }
         else if (guiState == FW_UPDATE_STATE)
         {
-            menu.goToMenu(false); //exit to menu if already in app
+            menu.startMenu(); //exit to menu if already in app
         }
     }
     //Up Button
     else if (wakeupBit & UP_BTN_MASK)
     {
-        if (guiState == MAIN_MENU_STATE)
-        { //increment menu index
-            menu.navigate(-1);
-        }
-        else
-        {
-            handleWatchFaceButton(0); // sent button press to watchface
-        }
+        // if (guiState == MAIN_MENU_STATE)
+        // { //increment menu index
+        //     menu.navigate(-1);
+        // }
+        // else
+        // {
+        handleWatchFaceButton(0); // sent button press to watchface
+        //}
     }
     //Down Button
     else if (wakeupBit & DOWN_BTN_MASK)
     {
-        if (guiState == MAIN_MENU_STATE)
-        { //decrement menu index
-            menu.navigate(1);
-        }
-        else
-        {
-            handleWatchFaceButton(1); // sent button press to watchface
-        }
+        // if (guiState == MAIN_MENU_STATE)
+        // { //decrement menu index
+        //     menu.navigate(1);
+        // }
+        // else
+        // {
+        handleWatchFaceButton(1); // sent button press to watchface
+        //}
     }
 }
 
@@ -224,7 +260,7 @@ void Watchy::showBuzz()
     display.display(false); //full refresh
     display.hibernate();
     vibMotor();
-    menu.goToMenu(false);
+    menu.startMenu();
 }
 
 void Watchy::vibMotor(uint8_t intervalMs, uint8_t length)
@@ -417,7 +453,7 @@ void Watchy::setTime()
     time_t t = makeTime(tm) + FUDGE;
     RTC.set(t);
 
-    menu.goToMenu(false);
+    menu.startMenu();
 }
 
 void Watchy::setTimeFormat()
@@ -433,44 +469,52 @@ void Watchy::setTimeFormat()
 
     guiState = APP_STATE;   // change state to app
     
-    // enable reading input from button pins
-    pinMode(DOWN_BTN_PIN, INPUT);
-    pinMode(UP_BTN_PIN, INPUT);
-    pinMode(MENU_BTN_PIN, INPUT);
-    pinMode(BACK_BTN_PIN, INPUT);
+    int8_t selection = menu.displayMenu(choices, 2, 0, true);
 
-    // create temp selection variable for selecting
-    bool selection = settings.timeFormat;
-    // draw initial menu
-    menu.drawMenu(choices, 2, selection, true);
+    // switch (menu.displayMenu(choices, 2, 0, true))
+    // {
+    //     case MENU_EXIT_CODE:
 
-    // loop forever
-    // second check is there because the delay causes problems otherwise
-    while (1 && guiState == APP_STATE)
-    {
-        if (digitalRead(BACK_BTN_PIN) == 1) // back button press
-        {
-            menu.goToMenu(false);
-        }
-        else if (digitalRead(MENU_BTN_PIN) == 1) // menu (confirm) button press
-        {
-            settings.timeFormat = selection;
-            menu.goToMenu(false);
-        }
-        else if (digitalRead(UP_BTN_PIN) == 1) // up
-        {
-            selection = !selection;
-            // redraw the menu with the new selection
-            menu.drawMenu(choices, 2, selection, true);
-        }
-        else if (digitalRead(DOWN_BTN_PIN) == 1) // down
-        {
-            selection = !selection;
-            menu.drawMenu(choices, 2, selection, true);
-        }
+    // }
 
-        delay(100); // wait 100ms to slow down loop
-    }
+    // // enable reading input from button pins
+    // pinMode(DOWN_BTN_PIN, INPUT);
+    // pinMode(UP_BTN_PIN, INPUT);
+    // pinMode(MENU_BTN_PIN, INPUT);
+    // pinMode(BACK_BTN_PIN, INPUT);
+
+    // // create temp selection variable for selecting
+    // bool selection = settings.timeFormat;
+    // // draw initial menu
+    // menu.drawMenu(choices, 2, selection, true);
+
+    // // loop forever
+    // // second check is there because the delay causes problems otherwise
+    // while (1 && guiState == APP_STATE)
+    // {
+    //     if (digitalRead(BACK_BTN_PIN) == 1) // back button press
+    //     {
+    //         menu.goToMenu(false);
+    //     }
+    //     else if (digitalRead(MENU_BTN_PIN) == 1) // menu (confirm) button press
+    //     {
+    //         settings.timeFormat = selection;
+    //         menu.goToMenu(false);
+    //     }
+    //     else if (digitalRead(UP_BTN_PIN) == 1) // up
+    //     {
+    //         selection = !selection;
+    //         // redraw the menu with the new selection
+    //         menu.drawMenu(choices, 2, selection, true);
+    //     }
+    //     else if (digitalRead(DOWN_BTN_PIN) == 1) // down
+    //     {
+    //         selection = !selection;
+    //         menu.drawMenu(choices, 2, selection, true);
+    //     }
+
+    //     delay(100); // wait 100ms to slow down loop
+    // }
 }
 
 void Watchy::showAccelerometer()
@@ -552,7 +596,7 @@ void Watchy::showAccelerometer()
         }
     }
 
-    menu.goToMenu(false);
+    menu.startMenu();
 }
 
 void Watchy::showWatchFace(bool partialRefresh)
@@ -948,7 +992,7 @@ void Watchy::updateFWBegin()
     //turn off radios
     WiFi.mode(WIFI_OFF);
     btStop();
-    menu.goToMenu(false);
+    menu.startMenu();
 }
 
 // time_t compileTime()
