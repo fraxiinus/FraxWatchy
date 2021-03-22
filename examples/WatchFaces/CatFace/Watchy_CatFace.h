@@ -1,10 +1,10 @@
 #ifndef WATCHY_CATFACE
 #define WATCHY_CATFACE
 
-#include <Watchy.h>
+#include <FraxWatchy.h>
 #include <Fonts/FreeMonoBold24pt7b.h>
 
-class WatchyCatFace : public Watchy
+class WatchyCatFace : public FraxWatchy
 {
     public:
         WatchyCatFace();

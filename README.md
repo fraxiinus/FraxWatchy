@@ -1,23 +1,14 @@
-# FraxiinusWatchy - Peronsal Watchy Library
+# FraxWatchy - Custom Watchy Library
 
 This is where I keep my changes to the Watchy library. [See new features](#new-features)
 
-Visit [**https://watchy.sqfmi.com**](https://watchy.sqfmi.com) for original Watchy documentation, hardware design files, and more!
-
-## Setup
-1. In the Arduino IDE Boards Manager, install support for the ESP32. You can find instructions here: https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md
-2. Install this library (search for **Watchy** in the library manager), and any other depdencies when prompted
-3. Check out the examples under ```Examples``` -> ```Watchy```
-4. Compile & Upload with these board settings:
-    * Board: "ESP32 Dev Module"
-    * Partition Scheme: "Minimal SPIFFS"
-    * All Other Settings: leave to default
-
-You may also have to install the [CP2104 USB to Serial drivers](https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers) if the port is not automatically detected
+Visit [**https://watchy.sqfmi.com**](https://watchy.sqfmi.com) for original Watchy documentation, hardware design files, and more.
 
 ## New Features
-- [Watch faces can react to right button presses](#watch-face-button-handling)
-- [New menu implementation makes it easier to change](#new-menu-implementation)
+- [FraxWatchy - Custom Watchy Library](#fraxwatchy---custom-watchy-library)
+  - [New Features](#new-features)
+    - [Watch Face Button Handling](#watch-face-button-handling)
+    - [New Menu Implementation](#new-menu-implementation)
 
 ### Watch Face Button Handling
 Watch faces are now able to react to when the two right side buttons are pressed. Override the `void handleWatchFaceButton(uint64_t buttonBit);` function in your watch face:
@@ -52,7 +43,7 @@ Right now, apps are defined under `Watchy::handleButtonPress()`
 
 This struct defines a menu item that will open a `submenu` with `id = 0`
 ```C
-{"Advanced Setup", MENU_ACITON_SUB, 0}
+{"Advanced Setup", MENU_ACTION_SUB, 0}
 ```
 
 In order for a menu to show up, they need to be put into a `menuList` struct:
@@ -70,7 +61,7 @@ and then add the menu id to the `Menu::getSubMenu(uint8_t id)` method:
 ```C
 const menuList* Menu::getSubMenu(uint8_t id)
 {
-    // Add a case for your menu here so your menu can be accesseed
+    // Add a case for your menu here so your menu can be accessed
     switch(id)
     {
         case 0:
