@@ -13,7 +13,7 @@
 #include "bma.h"
 #include "config.h"
 #include "keys.h"
-#include "Watchy_Menu.h"
+#include "FraxMenu.h"
 
 typedef struct weatherData
 {
@@ -31,7 +31,7 @@ class FraxWatchy
     public:
         static DS3232RTC RTC;
         static GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> display;
-        static Menu menu;
+        static FraxMenu menu;
         tmElements_t currentTime;
 
     public:

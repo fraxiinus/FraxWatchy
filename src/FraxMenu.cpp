@@ -1,7 +1,7 @@
-#include "Watchy_Menu.h"
+#include "FraxMenu.h"
 
-GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* Menu::display;
-menuState* Menu::state;
+GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* FraxMenu::display;
+menuState* FraxMenu::state;
 
 const menuItem setupMenuItems[4] = 
 {
@@ -35,7 +35,7 @@ const menuList setupMenu =
     3                   // the 4th entry in main menu is the entry point to the second menu
 };
 
-const menuList* Menu::getSubMenu(uint8_t id)
+const menuList* FraxMenu::getSubMenu(uint8_t id)
 {
     // Add a case for your menu here so your menu can be accesseed
     switch(id)
@@ -48,7 +48,7 @@ const menuList* Menu::getSubMenu(uint8_t id)
 }
 
 // Constructor
-Menu::Menu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, menuState* statePtr)
+FraxMenu::FraxMenu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, menuState* statePtr)
 {
     display = displayPtr;
     state = statePtr;
@@ -57,7 +57,7 @@ Menu::Menu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, menuSt
     state->menuIndex = 0;
 }
 
-uint8_t Menu::startMenu()
+uint8_t FraxMenu::startMenu()
 {
     while (1)
     {
@@ -114,7 +114,7 @@ uint8_t Menu::startMenu()
 //     }
 // }
 
-int8_t Menu::displayMenu(const menuItem* items, uint8_t length, uint8_t initialSelection, bool partialRefresh)
+int8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t initialSelection, bool partialRefresh)
 {
     // enable reading input from button pins
     pinMode(DOWN_BTN_PIN, INPUT);
@@ -173,7 +173,7 @@ int8_t Menu::displayMenu(const menuItem* items, uint8_t length, uint8_t initialS
 //     }
 // }
 
-void Menu::drawMenu(const menuItem* items, uint8_t length, uint8_t selectedIndex, bool partialRefresh)
+void FraxMenu::drawMenu(const menuItem* items, uint8_t length, uint8_t selectedIndex, bool partialRefresh)
 {
     display->init(0, false); //_initial_refresh to false to prevent full update on init
     display->setFullWindow();
@@ -221,7 +221,7 @@ void Menu::drawMenu(const menuItem* items, uint8_t length, uint8_t selectedIndex
     display->hibernate();
 }
 
-void Menu::drawMenu(const menuList* menu, bool partialRefresh)
+void FraxMenu::drawMenu(const menuList* menu, bool partialRefresh)
 {
     drawMenu(menu->items, menu->length, state->menuIndex, partialRefresh);
 }

@@ -9,7 +9,7 @@ RTC_DATA_ATTR bool BLE_CONFIGURED;
 
 DS3232RTC FraxWatchy::RTC(false);
 GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT> FraxWatchy::display(GxEPD2_154_D67(CS, DC, RESET, BUSY));
-Menu FraxWatchy::menu(&display, &menuData);
+FraxMenu FraxWatchy::menu(&display, &menuData);
 
 FraxWatchy::FraxWatchy() 
 {

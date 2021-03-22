@@ -1,5 +1,5 @@
-#ifndef WATCHY_MENU_H
-#define WATCHY_MENU_H
+#ifndef FRAXMENU_H
+#define FRAXMENU_H
 
 #include "Arduino.h"
 #include <GxEPD2_BW.h>
@@ -37,12 +37,12 @@ typedef struct menuState
     const menuList* currentMenu;
 } menuState;
 
-class Menu
+class FraxMenu
 {
     public: // public members
         
     public: // public methods
-        Menu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, menuState* statePtr);
+        FraxMenu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, menuState* statePtr);
         uint8_t startMenu();
         // uint8_t enterMenu(const menuList* menu, uint8_t initialSelection);
 
