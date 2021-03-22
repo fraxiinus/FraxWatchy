@@ -7,7 +7,7 @@
 #include "config.h"
 
 // unique action codes
-#define MENU_EXIT_CODE 0
+#define MENU_EXIT_CODE 127 // must not be a menu index value
 #define MENU_ACTION_APP 1 // open app action
 #define MENU_ACTION_SUB 2 // open submenu action
 

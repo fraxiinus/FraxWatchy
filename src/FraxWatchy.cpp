@@ -471,6 +471,17 @@ void FraxWatchy::setTimeFormat()
     
     int8_t selection = menu.displayMenu(choices, 2, 0, true);
 
+    if (selection == MENU_EXIT_CODE)
+    {
+        guiState = MAIN_MENU_STATE;
+        menu.startMenu();
+    }
+    else
+    {
+        guiState = MAIN_MENU_STATE;
+        settings.timeFormat = selection;
+        menu.startMenu();
+    }
     // switch (menu.displayMenu(choices, 2, 0, true))
     // {
     //     case MENU_EXIT_CODE:

@@ -116,16 +116,24 @@ uint8_t FraxMenu::startMenu()
 
 uint8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t initialSelection, bool partialRefresh)
 {
+    Serial.print("display menu...");
     // enable reading input from button pins
     pinMode(DOWN_BTN_PIN, INPUT);
     pinMode(UP_BTN_PIN, INPUT);
     pinMode(MENU_BTN_PIN, INPUT);
     pinMode(BACK_BTN_PIN, INPUT);
 
-    drawMenu(items, length, initialSelection, partialRefresh);
-
+    uint8_t drawNew = 1;
     while (1)
-    {
+    {   
+        if (drawNew == 1)
+        {
+            drawNew = 0;
+            drawMenu(items, length, initialSelection, partialRefresh);
+        }
+
+        Serial.print("Reading menu inputs...\n");
+
         if (digitalRead(BACK_BTN_PIN) == 1) // back button press
         {
             return MENU_EXIT_CODE;
@@ -142,7 +150,8 @@ uint8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t ini
             else if (desiredIndex == length) desiredIndex = 0;
 
             initialSelection = desiredIndex;
-            drawMenu(items, length, initialSelection, partialRefresh);
+            //drawMenu(items, length, initialSelection, partialRefresh);
+            drawNew = 1;
         }
         else if (digitalRead(DOWN_BTN_PIN) == 1) // down
         {
@@ -152,10 +161,12 @@ uint8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t ini
             else if (desiredIndex == length) desiredIndex = 0;
 
             initialSelection = desiredIndex;
-            drawMenu(items, length, initialSelection, partialRefresh);
+            //drawMenu(items, length, initialSelection, partialRefresh);
+            drawNew = 1;
         }
 
-        delay(50); // wait 50ms to stop loop from going insane
+        Serial.print("Waiting...\n");
+        delay(200); // wait 50ms to stop loop from going insane
     }
 }
 
