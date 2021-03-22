@@ -114,7 +114,7 @@ uint8_t FraxMenu::startMenu()
 //     }
 // }
 
-int8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t initialSelection, bool partialRefresh)
+uint8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t initialSelection, bool partialRefresh)
 {
     // enable reading input from button pins
     pinMode(DOWN_BTN_PIN, INPUT);

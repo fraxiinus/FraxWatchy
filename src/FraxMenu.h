@@ -7,10 +7,9 @@
 #include "config.h"
 
 // unique action codes
-#define MENU_ACTION_APP 0 // open app action
-#define MENU_ACTION_SUB 1 // open submenu action
-
-#define MENU_EXIT_CODE -1 
+#define MENU_EXIT_CODE 0
+#define MENU_ACTION_APP 1 // open app action
+#define MENU_ACTION_SUB 2 // open submenu action
 
 // data for the individual menu choices
 typedef struct menuItem
@@ -47,7 +46,7 @@ class FraxMenu
         // uint8_t enterMenu(const menuList* menu, uint8_t initialSelection);
 
         // returns user menu selection
-        int8_t displayMenu(const menuItem* items, uint8_t length, uint8_t initialSelection, bool partialRefresh);
+        uint8_t displayMenu(const menuItem* items, uint8_t length, uint8_t initialSelection, bool partialRefresh);
 
         // void goToMenu(bool goToMain);
         // bool goToPreviousMenu();
