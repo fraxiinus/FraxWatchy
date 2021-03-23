@@ -5,18 +5,20 @@ menuState* FraxMenu::state;
 
 const menuItem setupMenuItems[4] = 
 {
-    {"Set Time", NULL, MENU_ACTION_APP, 3},
-    {"Time Format", NULL, MENU_ACTION_APP, 6},
-    {"Setup WiFi", NULL, MENU_ACTION_APP, 4},
-    {"OTA Update", NULL, MENU_ACTION_APP, 5}
+    // Title        Icon    Action              Action Id
+    {"Set Time",    NULL,   MENU_ACTION_APP,    3},
+    {"Time Format", NULL,   MENU_ACTION_APP,    6},
+    {"Setup WiFi",  NULL,   MENU_ACTION_APP,    4},
+    {"OTA Update",  NULL,   MENU_ACTION_APP,    5}
 };
 
 const menuItem mainMenuItems[6] = 
 {
-    {"Check Battery", batteryIcon, MENU_ACTION_APP,  0},        // opens app with id=1
-    {"Vibrate Motor", vibrateIcon, MENU_ACTION_APP, 1},
-    {"Show BMA423", rotationIcon, MENU_ACTION_APP, 2},
-    {"Settings", settingsIcon, MENU_ACTION_SUB, 0}       // opens submenu with id=0 (entry point)
+    // Title            Icon            Action              Action Id
+    {"Check Battery",   batteryIcon,    MENU_ACTION_APP,    0},  // opens app with id=1
+    {"Vibrate Motor",   vibrateIcon,    MENU_ACTION_APP,    1},
+    {"Show BMA423",     rotationIcon,   MENU_ACTION_APP,    2},
+    {"Settings",        settingsIcon,   MENU_ACTION_SUB,    0}   // opens submenu with id=0 (entry point)
 };
  
 const menuList mainMenu =
@@ -50,45 +52,53 @@ const menuList* FraxMenu::getSubMenu(uint8_t id)
 // Constructor
 FraxMenu::FraxMenu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, menuState* statePtr)
 {
+    // Save required pointers
     display = displayPtr;
     state = statePtr;
 
+    // Set default menu state
     state->currentMenu = &mainMenu;
     state->menuIndex = 0;
 }
 
+// Show the main menu structure at the saved state. Returns when user makes a selection, or closes the menu
 uint8_t FraxMenu::startMenu()
 {
     while (1)
     {
+        // Get the user's selection
         int8_t selection = displayMenu((state->currentMenu)->items, (state->currentMenu)->length, state->menuIndex, true);
+
+        // If the user pressed the exit button
         if (selection == MENU_EXIT_CODE)
         {
-            // null means the menu has no parent, so we should exit
+            // Check if we are in a submenu, if we are not we exit
             if ((state->currentMenu)->parent == NULL)
             {
                 return MENU_EXIT_CODE;
             }
-            else
+            else // Otherwise move into parent menu
             {
-                // change our state to move to the parent
                 state->currentMenu = (state->currentMenu)->parent;
                 state->menuIndex = (state->currentMenu)->parentIndex;
                 continue; // return to start of the loop
             }
         }
-        else
+        else // user made a menu selection
         {
+            // Get the selection item
             menuItem menuSelection = (state->currentMenu)->items[selection];
-            // handle submenu actions internally
+
             if (menuSelection.action == MENU_ACTION_SUB)
             {
+                // Open the submenu
                 state->currentMenu = getSubMenu(menuSelection.id);
                 state->menuIndex = 0;
                 continue; // return to start of the loop
             }
             else if (menuSelection.action == MENU_ACTION_APP)
             {
+                // Return the App Id for the main library to resolve
                 return menuSelection.id;
             }
         }
@@ -114,21 +124,23 @@ uint8_t FraxMenu::startMenu()
 //     }
 // }
 
+// Show the given menu items, Returns when user makes a selection, or closes the menu
 uint8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t initialSelection, bool partialRefresh)
 {
     Serial.print("display menu...");
-    // enable reading input from button pins
+
+    // Enable reading input from button pins
     pinMode(DOWN_BTN_PIN, INPUT);
     pinMode(UP_BTN_PIN, INPUT);
     pinMode(MENU_BTN_PIN, INPUT);
     pinMode(BACK_BTN_PIN, INPUT);
 
-    uint8_t drawNew = 1;
+    uint8_t drawNew = true; // Indicates when to update screen
     while (1)
     {   
-        if (drawNew == 1)
+        if (drawNew)
         {
-            drawNew = 0;
+            drawNew = false; // Reset the flag
             drawMenu(items, length, initialSelection, partialRefresh);
         }
 
@@ -140,6 +152,9 @@ uint8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t ini
         }
         else if (digitalRead(MENU_BTN_PIN) == 1) // menu (confirm) button press
         {
+            Serial.print("Selected ")
+            Serial.print(initialSelection);
+            Serial.print(" index\n")
             return initialSelection;
         }
         else if (digitalRead(UP_BTN_PIN) == 1) // up
@@ -149,9 +164,9 @@ uint8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t ini
             if (desiredIndex == -1) desiredIndex = length - 1;
             else if (desiredIndex == length) desiredIndex = 0;
 
+            // Set the selection value and raise the draw flag
             initialSelection = desiredIndex;
-            //drawMenu(items, length, initialSelection, partialRefresh);
-            drawNew = 1;
+            drawNew = true;
         }
         else if (digitalRead(DOWN_BTN_PIN) == 1) // down
         {
@@ -161,8 +176,7 @@ uint8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t ini
             else if (desiredIndex == length) desiredIndex = 0;
 
             initialSelection = desiredIndex;
-            //drawMenu(items, length, initialSelection, partialRefresh);
-            drawNew = 1;
+            drawNew = true;
         }
 
         Serial.print("Waiting...\n");
@@ -184,6 +198,7 @@ uint8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t ini
 //     }
 // }
 
+// Draw the given menu items to the screen
 void FraxMenu::drawMenu(const menuItem* items, uint8_t length, uint8_t selectedIndex, bool partialRefresh)
 {
     display->init(0, false); //_initial_refresh to false to prevent full update on init
@@ -232,6 +247,7 @@ void FraxMenu::drawMenu(const menuItem* items, uint8_t length, uint8_t selectedI
     display->hibernate();
 }
 
+// Draw the given menuList to the screen
 void FraxMenu::drawMenu(const menuList* menu, bool partialRefresh)
 {
     drawMenu(menu->items, menu->length, state->menuIndex, partialRefresh);
