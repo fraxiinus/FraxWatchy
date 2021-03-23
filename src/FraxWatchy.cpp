@@ -42,6 +42,13 @@ void FraxWatchy::init(String datetime)
     Wire.begin(SDA, SCL);                         //init i2c
     Serial.begin(115200);
 
+    Serial.println("--Reading saved states--");
+    Serial.print("menuData.menuIndex: ");
+    Serial.println(menuData.menuIndex);
+
+    Serial.print("settings.timeFormat: ");
+    Serial.println(settings.timeFormat);
+
     switch (wakeup_reason)
     {
     case ESP_SLEEP_WAKEUP_EXT0: //RTC Alarm
@@ -108,43 +115,7 @@ void FraxWatchy::handleButtonPress()
     {
         if (guiState == WATCHFACE_STATE)
         { //enter menu state if coming from watch face
-            guiState = MAIN_MENU_STATE;
-            uint8_t selection = menu.startMenu();
-            if (selection == MENU_EXIT_CODE)
-            {
-                RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
-                RTC.read(currentTime);
-                showWatchFace(false);
-            }
-            else
-            {
-                switch (selection)
-                {
-                    case 0:
-                        showBattery();
-                        break;
-                    case 1:
-                        showBuzz();
-                        break;
-                    case 2:
-                        showAccelerometer();
-                        break;
-                    case 3:
-                        setTime();
-                        break;
-                    case 4:
-                        setupWifi();
-                        break;
-                    case 5:
-                        showUpdateFW();
-                        break;
-                    case 6:
-                        setTimeFormat();
-                        break;
-                    default:
-                        break;
-                }
-            }
+            showMenu();
         }
         // else if (guiState == MAIN_MENU_STATE)
         // { //if already in menu, then select menu item
@@ -196,11 +167,11 @@ void FraxWatchy::handleButtonPress()
         // }
         if (guiState == APP_STATE)
         {
-            menu.startMenu(); //exit to menu if already in app
+            showMenu(); //exit to menu if already in app
         }
         else if (guiState == FW_UPDATE_STATE)
         {
-            menu.startMenu(); //exit to menu if already in app
+            showMenu(); //exit to menu if already in app
         }
     }
     //Up Button
@@ -229,8 +200,51 @@ void FraxWatchy::handleButtonPress()
     }
 }
 
+void FraxWatchy::showMenu()
+{
+    guiState = MAIN_MENU_STATE;
+    uint8_t selection = menu.startMenu();
+    if (selection == MENU_EXIT_CODE)
+    {
+        RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
+        RTC.read(currentTime);
+        showWatchFace(false);
+    }
+    else
+    {
+        switch (selection)
+        {
+            case 0:
+                showBattery();
+                break;
+            case 1:
+                showBuzz();
+                break;
+            case 2:
+                showAccelerometer();
+                break;
+            case 3:
+                setTime();
+                break;
+            case 4:
+                setupWifi();
+                break;
+            case 5:
+                showUpdateFW();
+                break;
+            case 6:
+                setTimeFormat();
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 void FraxWatchy::showBattery()
 {
+    guiState = APP_STATE;
+    
     display.init(0, false); //_initial_refresh to false to prevent full update on init
     display.setFullWindow();
     display.fillScreen(GxEPD_BLACK);
@@ -244,12 +258,12 @@ void FraxWatchy::showBattery()
     display.println("V");
     display.display(false); //full refresh
     display.hibernate();
-
-    guiState = APP_STATE;
 }
 
 void FraxWatchy::showBuzz()
 {
+    guiState = APP_STATE;
+
     display.init(0, false); //_initial_refresh to false to prevent full update on init
     display.setFullWindow();
     display.fillScreen(GxEPD_BLACK);
@@ -260,7 +274,8 @@ void FraxWatchy::showBuzz()
     display.display(false); //full refresh
     display.hibernate();
     vibMotor();
-    menu.startMenu();
+
+    showMenu();
 }
 
 void FraxWatchy::vibMotor(uint8_t intervalMs, uint8_t length)
@@ -453,7 +468,7 @@ void FraxWatchy::setTime()
     time_t t = makeTime(tm) + FUDGE;
     RTC.set(t);
 
-    menu.startMenu();
+    showMenu();
 }
 
 void FraxWatchy::setTimeFormat()
@@ -474,14 +489,14 @@ void FraxWatchy::setTimeFormat()
     if (selection == MENU_EXIT_CODE)
     {
         guiState = MAIN_MENU_STATE;
-        menu.startMenu();
     }
     else
     {
         guiState = MAIN_MENU_STATE;
         settings.timeFormat = selection;
-        menu.startMenu();
     }
+
+    showMenu();
     // switch (menu.displayMenu(choices, 2, 0, true))
     // {
     //     case MENU_EXIT_CODE:
@@ -530,6 +545,8 @@ void FraxWatchy::setTimeFormat()
 
 void FraxWatchy::showAccelerometer()
 {
+    guiState = APP_STATE;
+
     display.init(0, true); //_initial_refresh to false to prevent full update on init
     display.setFullWindow();
     display.fillScreen(GxEPD_BLACK);
@@ -541,13 +558,10 @@ void FraxWatchy::showAccelerometer()
     long previousMillis = 0;
     long interval = 200;
 
-    guiState = APP_STATE;
-
     pinMode(BACK_BTN_PIN, INPUT);
 
     while (1)
     {
-
         unsigned long currentMillis = millis();
 
         if (digitalRead(BACK_BTN_PIN) == 1)
@@ -607,7 +621,7 @@ void FraxWatchy::showAccelerometer()
         }
     }
 
-    menu.startMenu();
+    showMenu();
 }
 
 void FraxWatchy::showWatchFace(bool partialRefresh)
@@ -813,6 +827,8 @@ void FraxWatchy::_bmaConfig()
 
 void FraxWatchy::setupWifi()
 {
+    guiState = APP_STATE;
+
     WiFiManager wifiManager;
     wifiManager.resetSettings();
     wifiManager.setTimeout(WIFI_AP_TIMEOUT);
@@ -842,11 +858,10 @@ void FraxWatchy::setupWifi()
         display.display(false); //full refresh
         display.hibernate();
     }
+
     //turn off radios
     WiFi.mode(WIFI_OFF);
     btStop();
-
-    guiState = APP_STATE;
 }
 
 void FraxWatchy::_configModeCallback(WiFiManager *myWiFiManager)
@@ -1003,7 +1018,8 @@ void FraxWatchy::updateFWBegin()
     //turn off radios
     WiFi.mode(WIFI_OFF);
     btStop();
-    menu.startMenu();
+
+    showMenu();
 }
 
 // time_t compileTime()

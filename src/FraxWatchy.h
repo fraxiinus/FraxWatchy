@@ -42,6 +42,7 @@ class FraxWatchy
         void vibMotor(uint8_t intervalMs = 100, uint8_t length = 20);
 
         void handleButtonPress();
+        void showMenu();
         void showBattery();
         void showBuzz();
         void showAccelerometer();

@@ -66,6 +66,9 @@ uint8_t FraxMenu::startMenu()
 {
     while (1)
     {
+        Serial.print("startMenu index: ");
+        Serial.println(state->menuIndex);
+
         // Get the user's selection
         int8_t selection = displayMenu((state->currentMenu)->items, (state->currentMenu)->length, state->menuIndex, true);
 
@@ -75,12 +78,14 @@ uint8_t FraxMenu::startMenu()
             // Check if we are in a submenu, if we are not we exit
             if ((state->currentMenu)->parent == NULL)
             {
+                Serial.println("Return exit code");
                 return MENU_EXIT_CODE;
             }
             else // Otherwise move into parent menu
             {
-                state->currentMenu = (state->currentMenu)->parent;
+                Serial.println("Go to parent menu");
                 state->menuIndex = (state->currentMenu)->parentIndex;
+                state->currentMenu = (state->currentMenu)->parent;
                 continue; // return to start of the loop
             }
         }
@@ -91,6 +96,7 @@ uint8_t FraxMenu::startMenu()
 
             if (menuSelection.action == MENU_ACTION_SUB)
             {
+                Serial.println("Go to submenu");
                 // Open the submenu
                 state->currentMenu = getSubMenu(menuSelection.id);
                 state->menuIndex = 0;
@@ -98,6 +104,8 @@ uint8_t FraxMenu::startMenu()
             }
             else if (menuSelection.action == MENU_ACTION_APP)
             {
+                Serial.println("Go to app");
+                state->menuIndex = selection;
                 // Return the App Id for the main library to resolve
                 return menuSelection.id;
             }
@@ -127,7 +135,7 @@ uint8_t FraxMenu::startMenu()
 // Show the given menu items, Returns when user makes a selection, or closes the menu
 uint8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t initialSelection, bool partialRefresh)
 {
-    Serial.print("display menu...");
+    Serial.println("displayMenu...");
 
     // Enable reading input from button pins
     pinMode(DOWN_BTN_PIN, INPUT);
@@ -144,17 +152,16 @@ uint8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t ini
             drawMenu(items, length, initialSelection, partialRefresh);
         }
 
-        Serial.print("Reading menu inputs...\n");
-
         if (digitalRead(BACK_BTN_PIN) == 1) // back button press
         {
+            Serial.println("Exit displayMenu");
             return MENU_EXIT_CODE;
         }
         else if (digitalRead(MENU_BTN_PIN) == 1) // menu (confirm) button press
         {
-            Serial.print("Selected ")
+            Serial.print("Selected ");
             Serial.print(initialSelection);
-            Serial.print(" index\n")
+            Serial.println(" index");
             return initialSelection;
         }
         else if (digitalRead(UP_BTN_PIN) == 1) // up
@@ -179,7 +186,6 @@ uint8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t ini
             drawNew = true;
         }
 
-        Serial.print("Waiting...\n");
         delay(200); // wait 50ms to stop loop from going insane
     }
 }
