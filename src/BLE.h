@@ -21,7 +21,8 @@ class BLE
     BLE(void);
     ~BLE(void);
 
-    bool begin(const char* localName);
+    bool begin(const char* localName = "Watchy BLE OTA");
+    void stop();
     int updateStatus();
     int howManyBytes();
   

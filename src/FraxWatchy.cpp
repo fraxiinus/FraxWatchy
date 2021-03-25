@@ -172,6 +172,9 @@ void FraxWatchy::showMenu()
             case 6:
                 setTimeFormat();
                 break;
+            case 7:
+                setBluetoothLE();
+                break;
             default:
                 break;
         }
@@ -436,6 +439,47 @@ void FraxWatchy::setTimeFormat()
     showMenu();
 }
 
+void FraxWatchy::setBluetoothLE()
+{
+    menuItem choices[2] = 
+    {
+        {"Disabled", NULL, 0, 0},
+        {"Enabled", NULL, 0, 0}
+    };
+
+    state.guiMode = APP_STATE;
+    int8_t selection = menu.displayMenu(choices, 2, state.bleConfigured, true);
+
+    if (selection == MENU_EXIT_CODE)
+    {
+        state.guiMode = MAIN_MENU_STATE;
+    }
+    else if (selection == true)
+    {
+        if (state.bleConfigured != true)
+        {
+            BLE ble;
+            ble.begin();
+        }
+        
+        state.guiMode = MAIN_MENU_STATE;
+        state.bleConfigured = selection;
+    }
+    else 
+    {
+        if (state.bleConfigured != false)
+        {
+            BLE ble;
+            ble.stop();
+        }
+
+        state.guiMode = MAIN_MENU_STATE;
+        state.bleConfigured = selection;
+    }
+
+    showMenu();
+}
+
 void FraxWatchy::showAccelerometer()
 {
     state.guiMode = APP_STATE;
@@ -554,7 +598,6 @@ void FraxWatchy::handleWatchFaceButton(uint8_t button)
 
 weatherData FraxWatchy::getWeatherData()
 {
-
     weatherData currentWeather;
 
     if (connectWiFi())

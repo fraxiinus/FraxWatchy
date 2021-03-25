@@ -39,6 +39,7 @@ class FraxWatchy
         void showUpdateFW();
         void setTime();
         void setTimeFormat();
+        void setBluetoothLE();
         void setupWifi();
         bool connectWiFi();
         weatherData getWeatherData();

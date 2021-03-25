@@ -93,7 +93,9 @@ BLE::~BLE(void)
 
 //
 // begin
-bool BLE::begin(const char* localName = "Watchy BLE OTA") {
+bool BLE::begin(const char* localName) {
+  Serial.println("Starting BLE server");
+
   // Create the BLE Device
   BLEDevice::init(localName);
 
@@ -129,10 +131,12 @@ bool BLE::begin(const char* localName = "Watchy BLE OTA") {
   pOtaCharacteristic->addDescriptor(new BLE2902());
   pOtaCharacteristic->setCallbacks(new otaCallback(this));
 
+  Serial.println("Start BLE services");
   // Start the service(s)
   pESPOTAService->start();
   pService->start();
 
+  Serial.println("Start advertising");
   // Start advertising
   pServer->getAdvertising()->addServiceUUID(SERVICE_UUID_ESPOTA);
   pServer->getAdvertising()->start();
@@ -142,6 +146,10 @@ bool BLE::begin(const char* localName = "Watchy BLE OTA") {
   pWatchFaceNameCharacteristic->setValue("Watchy 7 Segment");
 
   return true;
+}
+
+void BLE::stop(){
+  BLEDevice::deinit(false);
 }
 
 int BLE::updateStatus(){

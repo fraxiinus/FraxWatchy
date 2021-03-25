@@ -3,13 +3,14 @@
 GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* FraxMenu::display;
 watchState* FraxMenu::state;
 
-const menuItem setupMenuItems[4] = 
+const menuItem setupMenuItems[5] = 
 {
-    // Title        Icon    Action              Action Id
-    {"Set Time",    NULL,   MENU_ACTION_APP,    3},
-    {"Time Format", NULL,   MENU_ACTION_APP,    6},
-    {"Setup WiFi",  NULL,   MENU_ACTION_APP,    4},
-    {"OTA Update",  NULL,   MENU_ACTION_APP,    5}
+    // Title            Icon    Action              Action Id
+    {"Set Time",        NULL,   MENU_ACTION_APP,    3},
+    {"Time Format",     NULL,   MENU_ACTION_APP,    6},
+    {"Setup WiFi",      NULL,   MENU_ACTION_APP,    4},
+    {"Bluetooth LE",    NULL,   MENU_ACTION_APP,    7},
+    {"OTA Update",      NULL,   MENU_ACTION_APP,    5}
 };
 
 const menuItem mainMenuItems[6] = 
@@ -33,7 +34,7 @@ const menuList setupMenu =
 {
     &mainMenu,          // second menu is a submenu under main menu
     setupMenuItems,
-    4,
+    5,
     3                   // the 4th entry in main menu is the entry point to the second menu
 };
 
