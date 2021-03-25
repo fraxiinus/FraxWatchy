@@ -428,7 +428,7 @@ void FraxWatchy::setTimeFormat()
 
     state.guiMode = APP_STATE;   // change state to app
     
-    int8_t selection = menu.displayMenu(choices, 2, 0, true);
+    int8_t selection = menu.displayMenu(choices, 2, state.timeFormat, true);
 
     if (selection == MENU_EXIT_CODE)
     {
