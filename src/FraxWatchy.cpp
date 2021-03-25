@@ -38,13 +38,6 @@ void FraxWatchy::init(String datetime)
     Wire.begin(SDA, SCL);                         //init i2c
     Serial.begin(115200);
 
-    Serial.println("--Reading saved states--");
-    Serial.print("menuData.menuIndex: ");
-    Serial.println(state.menuIndex);
-
-    Serial.print("state.timeFormat: ");
-    Serial.println(state.timeFormat);
-
     switch (wakeup_reason)
     {
     case ESP_SLEEP_WAKEUP_EXT0: //RTC Alarm

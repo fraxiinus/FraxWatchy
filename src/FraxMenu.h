@@ -19,15 +19,7 @@ class FraxMenu
     public: // public methods
         FraxMenu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, watchState* statePtr);
         uint8_t startMenu();
-        // uint8_t enterMenu(const menuList* menu, uint8_t initialSelection);
-
-        // returns user menu selection
         uint8_t displayMenu(const menuItem* items, uint8_t length, uint8_t initialSelection, bool partialRefresh);
-
-        // void goToMenu(bool goToMain);
-        // bool goToPreviousMenu();
-        // uint8_t clickMenuItem();
-        // void navigate(int movement);
     
     private:    // private members
         static GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* display;
