@@ -14,17 +14,7 @@
 #include "config.h"
 #include "keys.h"
 #include "FraxMenu.h"
-
-typedef struct weatherData
-{
-    int8_t temperature;
-    int16_t weatherConditionCode;
-} weatherData;
-
-typedef struct userSettings
-{
-    bool timeFormat; // false = 12hour time, true = 24hour time
-} userSettings;
+#include "FraxModels.h"
 
 class FraxWatchy
 {
@@ -66,11 +56,7 @@ class FraxWatchy
         static uint16_t _writeRegister(uint8_t address, uint8_t reg, uint8_t *data, uint16_t len);
 };
 
-extern RTC_DATA_ATTR int guiState;
 extern RTC_DATA_ATTR BMA423 sensor;
-extern RTC_DATA_ATTR menuState menuData;
-extern RTC_DATA_ATTR userSettings settings;
-extern RTC_DATA_ATTR bool WIFI_CONFIGURED;
-extern RTC_DATA_ATTR bool BLE_CONFIGURED;
+extern RTC_DATA_ATTR watchState state;
 
 #endif

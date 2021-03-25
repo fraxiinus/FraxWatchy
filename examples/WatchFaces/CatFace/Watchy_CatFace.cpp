@@ -17,7 +17,7 @@ void WatchyCatFace::drawTime()
     display.setCursor(0, 50);
     
     uint8_t hour = currentTime.Hour;
-    if (!settings.timeFormat)
+    if (!state.timeFormat)
     {
         if (hour == 0) hour = 12;
         else if(hour > 12) hour = hour - 12;
@@ -32,7 +32,7 @@ void WatchyCatFace::drawTime()
 
     display.setFont(&FreeMonoBold9pt7b);
     display.setCursor(160, 50);
-    if (settings.timeFormat)
+    if (state.timeFormat)
     {
         display.print("24H");
     }
@@ -60,7 +60,7 @@ void WatchyCatFace::handleWatchFaceButton(uint8_t button)
 {
     if (button == 1)
     {
-        settings.timeFormat = !settings.timeFormat;
+        state.timeFormat = !state.timeFormat;
         RTC.alarm(ALARM_2); //resets the alarm flag in the RTC
         RTC.read(currentTime);
         showWatchFace(true);

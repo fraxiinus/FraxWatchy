@@ -1,7 +1,7 @@
 #include "FraxMenu.h"
 
 GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* FraxMenu::display;
-menuState* FraxMenu::state;
+watchState* FraxMenu::state;
 
 const menuItem setupMenuItems[4] = 
 {
@@ -50,16 +50,21 @@ const menuList* FraxMenu::getSubMenu(uint8_t id)
 }
 
 // Constructor
-FraxMenu::FraxMenu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, menuState* statePtr)
+FraxMenu::FraxMenu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, watchState* statePtr)
 {
     // Save required pointers
     display = displayPtr;
     state = statePtr;
 
     // Set default menu state
-    state->currentMenu = &mainMenu;
-    state->menuIndex = 0;
+    if (state->menuSaved != true)
+    {
+        state->currentMenu = &mainMenu;
+        state->menuIndex = 0;
+    }
 }
+
+
 
 // Show the main menu structure at the saved state. Returns when user makes a selection, or closes the menu
 uint8_t FraxMenu::startMenu()
@@ -67,7 +72,9 @@ uint8_t FraxMenu::startMenu()
     while (1)
     {
         Serial.print("startMenu index: ");
-        Serial.println(state->menuIndex);
+        Serial.print(state->menuIndex);
+        Serial.print(" at ");
+        Serial.printf("%p\n", (void*) state->currentMenu);
 
         // Get the user's selection
         int8_t selection = displayMenu((state->currentMenu)->items, (state->currentMenu)->length, state->menuIndex, true);
@@ -100,37 +107,32 @@ uint8_t FraxMenu::startMenu()
                 // Open the submenu
                 state->currentMenu = getSubMenu(menuSelection.id);
                 state->menuIndex = 0;
+
+
+                Serial.print("user selection check: ");
+                Serial.print(state->menuIndex);
+                Serial.print(" at ");
+                Serial.printf("%p\n", (void*) state->currentMenu);
+
                 continue; // return to start of the loop
             }
             else if (menuSelection.action == MENU_ACTION_APP)
             {
                 Serial.println("Go to app");
                 state->menuIndex = selection;
+                state->menuSaved = true;
+                
+                Serial.print("user selection check: ");
+                Serial.print(state->menuIndex);
+                Serial.print(" at ");
+                Serial.printf("%p\n", (void*) state->currentMenu);
+
                 // Return the App Id for the main library to resolve
                 return menuSelection.id;
             }
         }
     }
 }
-
-// uint8_t Menu::enterMenu(const menuList* menu, uint8_t initialSelection)
-// {
-//     int8_t selection = displayMenu(menu->items, menu->length, uint8_t initialSelection, true);
-    
-//     menuItem menuSelection = menu->items[selection];
-
-//     // handle submenu actions internally
-//     if (menuSelection.action == MENU_ACTION_SUB)
-//     {
-//         const menuList* subMenu = getSubMenu(menuSelection.id);
-
-//         enterMenu(subMenu);
-//     }
-//     else if (menuSelection.action == MENU_ACTION_APP)
-//     {
-//         return menuSelection.id;
-//     }
-// }
 
 // Show the given menu items, Returns when user makes a selection, or closes the menu
 uint8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t initialSelection, bool partialRefresh)
@@ -190,20 +192,6 @@ uint8_t FraxMenu::displayMenu(const menuItem* items, uint8_t length, uint8_t ini
     }
 }
 
-// void Menu::goToMenu(bool goToMain)
-// {
-//     *guiState = MAIN_MENU_STATE;
-
-//     if (goToMain)
-//     {
-//         state->currentMenu = &mainMenu;
-//         drawMenu(&mainMenu, true);
-//     } else
-//     {
-//         drawMenu(state->currentMenu, true);
-//     }
-// }
-
 // Draw the given menu items to the screen
 void FraxMenu::drawMenu(const menuItem* items, uint8_t length, uint8_t selectedIndex, bool partialRefresh)
 {
@@ -258,55 +246,3 @@ void FraxMenu::drawMenu(const menuList* menu, bool partialRefresh)
 {
     drawMenu(menu->items, menu->length, state->menuIndex, partialRefresh);
 }
-
-// uint8_t Menu::clickMenuItem()
-// {
-//     // get the selected item
-//     menuItem menuSelection = (state->currentMenu)->items[state->menuIndex];
-    
-//     // handle submenu actions internally
-//     if (menuSelection.action == MENU_ACTION_SUB)
-//     {
-//         state->currentMenu = getSubMenu(menuSelection.id);
-//         state->menuIndex = 0;
-
-//         drawMenu(getSubMenu(menuSelection.id), true);
-
-//         return 0;   // 0 is reserved value for doing nothing
-//     }
-
-//     // otherwise return the id of the menu item
-//     return menuSelection.id;
-// }
-
-// void Menu::navigate(int movement)
-// {
-
-//     int desiredIndex = state->menuIndex + movement;
-//     // if the index is negative, we need to loop around
-//     if (desiredIndex == -1)
-//     {
-//         desiredIndex = (state->currentMenu)->length - 1;
-//     }
-
-//     state->menuIndex = desiredIndex % (state->currentMenu)->length;
-
-//     drawMenu(state->currentMenu, true);
-// }
-
-// return true if there is a parent menu to go back to
-// bool Menu::goToPreviousMenu()
-// {
-//     if ((state->currentMenu)->parentIndex != NULL)
-//     {
-//         // Update our state
-//         state->menuIndex = (state->currentMenu)->parentIndex;
-//         state->currentMenu = (state->currentMenu)->parent;
-
-//         drawMenu(state->currentMenu, true);
-//         return true;
-//     }
-
-//     // tell the caller there is no more menu left (go to watchface)
-//     return false;
-// }

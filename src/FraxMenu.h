@@ -5,43 +5,19 @@
 #include <GxEPD2_BW.h>
 #include <Fonts/FreeMonoBold9pt7b.h>
 #include "config.h"
+#include "FraxModels.h"
 
 // unique action codes
 #define MENU_EXIT_CODE 127 // must not be a menu index value
 #define MENU_ACTION_APP 1 // open app action
 #define MENU_ACTION_SUB 2 // open submenu action
 
-// data for the individual menu choices
-typedef struct menuItem
-{
-    char* name;                 // the name to display
-    const uint8_t* icon;              // pointer to bitmap
-    uint8_t action;             // define how an entry acts
-    uint8_t id;                 // unique within action type, used to differentiate things in the same type
-} menuItem;
-
-// data for list of menu choices
-typedef struct menuList
-{
-    const menuList* parent;     // reference to parent menu
-    const menuItem* items;
-    uint8_t length;             // number of items
-    uint8_t parentIndex;        // the menu item this sub menu is under
-} menuList;
-
-// data stored in RTC memory
-typedef struct menuState
-{
-    uint8_t menuIndex;
-    const menuList* currentMenu;
-} menuState;
-
 class FraxMenu
 {
     public: // public members
         
     public: // public methods
-        FraxMenu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, menuState* statePtr);
+        FraxMenu(GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* displayPtr, watchState* statePtr);
         uint8_t startMenu();
         // uint8_t enterMenu(const menuList* menu, uint8_t initialSelection);
 
@@ -55,7 +31,7 @@ class FraxMenu
     
     private:    // private members
         static GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>* display;
-        static menuState* state;
+        static watchState* state;
 
     private:    // private methods
         const menuList* getSubMenu(uint8_t id);
